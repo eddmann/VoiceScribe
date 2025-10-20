@@ -1,0 +1,122 @@
+name: Release VoiceScribe
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Update version in project
+        run: |
+          # Update MARKETING_VERSION in project.pbxproj
+          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${{ inputs.version }}/g" VoiceScribe.xcodeproj/project.pbxproj
+
+          # Extract major version number for CURRENT_PROJECT_VERSION (e.g., 1.0.0 -> 1)
+          BUILD_NUMBER=$(echo "${{ inputs.version }}" | sed 's/[^0-9]*\([0-9]*\).*/\1/')
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/g" VoiceScribe.xcodeproj/project.pbxproj
+
+          echo "Updated version to ${{ inputs.version }} (build $BUILD_NUMBER)"
+
+      - name: Build app
+        run: |
+          xcodebuild clean build \
+            -project VoiceScribe.xcodeproj \
+            -scheme VoiceScribe \
+            -configuration Release \
+            -derivedDataPath ./build \
+            -arch x86_64 -arch arm64 \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create app bundle ZIP
+        run: |
+          cd build/Build/Products/Release
+          zip -r ../../../../VoiceScribe-${{ inputs.version }}.zip VoiceScribe.app
+          cd ../../../..
+          echo "Created VoiceScribe-${{ inputs.version }}.zip"
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## VoiceScribe v${{ inputs.version }}
+
+          ### Installation
+
+          1. Download `VoiceScribe-${{ inputs.version }}.zip`
+          2. Unzip the file
+          3. Move `VoiceScribe.app` to your Applications folder
+          4. Right-click and select "Open" the first time (to bypass Gatekeeper)
+
+          If you see "VoiceScribe is damaged and can't be opened", run:
+          ```bash
+          xattr -cr /Applications/VoiceScribe.app
+          ```
+
+          ### Features
+
+          - **Global hotkey recording** - Press Option-Shift-Space to record from anywhere (customizable)
+          - **Dual transcription engines** - Choose between privacy-focused local WhisperKit or cloud-based OpenAI
+          - **On-device processing** - All audio stays on your Mac with WhisperKit (Apple Silicon only)
+          - **Auto-paste** - Transcriptions paste directly into your active app
+          - **Model management** - Download and switch between Tiny, Base, Small, and Medium models
+          - **Clipboard history** - Review past transcriptions anytime
+          - **Secure storage** - API keys encrypted in macOS Keychain
+
+          ### Requirements
+
+          - macOS 14.0 (Sonoma) or later
+          - Universal Binary (Intel + Apple Silicon)
+
+          ### Notes
+
+          ⚠️ **Unsigned Build**: This build is not notarized or signed with a Developer ID. You'll need to right-click and select "Open" the first time you run it.
+
+          For auto-paste functionality, grant Accessibility permissions when prompted in System Settings → Privacy & Security → Accessibility.
+
+          ### Security & Privacy
+
+          - All audio processing happens on-device with WhisperKit (no network transmission)
+          - OpenAI mode sends audio to their servers - review [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy)
+          - API keys encrypted in macOS Keychain with device-only access
+          - Zero telemetry or analytics collection
+          EOF
+
+          echo "Generated release notes"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: VoiceScribe v${{ inputs.version }}
+          body_path: release_notes.md
+          files: VoiceScribe-${{ inputs.version }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoiceScribe-${{ inputs.version }}
+          path: VoiceScribe-${{ inputs.version }}.zip
+          retention-days: 90
