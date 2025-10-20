@@ -25,6 +25,16 @@ final class MenuBarController: NSObject {
         self.appState = appState
         super.init()
         setupMenuBar()
+        setupNotifications()
+    }
+
+    private func setupNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(closeRecordingWindow),
+            name: .closeRecordingWindow,
+            object: nil
+        )
     }
 
     private func setupMenuBar() {
@@ -108,6 +118,10 @@ final class MenuBarController: NSObject {
 
         // Force window to accept first responder status for keyboard events
         window.makeFirstResponder(window.contentView)
+    }
+
+    @objc private func closeRecordingWindow() {
+        recordingWindow?.orderOut(nil)
     }
 
     private func createRecordingWindow() -> NSWindow {

@@ -132,12 +132,15 @@ final class AppState {
             // Save to history
             await saveToHistory(text: text, service: service, audioURL: audioURL)
 
-            recordingState = .completed(text: text)
-
             // Smart paste if enabled and permissions granted
+            var wasPasted = false
+            var smartPasteAttempted = false
             if smartPasteEnabled {
-                await performSmartPaste()
+                smartPasteAttempted = true
+                wasPasted = await performSmartPaste()
             }
+
+            recordingState = .completed(text: text, pasted: wasPasted, smartPasteAttempted: smartPasteAttempted)
 
             // Auto-reset after 2 seconds
             Task {
@@ -153,25 +156,42 @@ final class AppState {
 
     // MARK: - Smart Paste
 
-    private func performSmartPaste() async {
+    private func performSmartPaste() async -> Bool {
         let focusManager = AppFocusManager.shared
         let pasteSimulator = PasteSimulator.shared
 
+        // Check if accessibility permission is granted
+        guard pasteSimulator.hasAccessibilityPermission else {
+            return false
+        }
+
         // Check if we have a previous app to restore to
         guard focusManager.hasPreviousApplication else {
-            return
+            return false
         }
 
         // Restore focus to previous app
         guard focusManager.restorePreviousApplication() else {
-            return
+            return false
         }
 
         // Wait a moment for the app to activate
         try? await Task.sleep(for: .milliseconds(200))
 
         // Simulate paste
-        _ = await pasteSimulator.simulatePasteWithDelay(delay: 0.1)
+        let success = await pasteSimulator.simulatePasteWithDelay(delay: 0.1)
+
+        // If paste was successful, close the recording window
+        if success {
+            closeRecordingWindow()
+        }
+
+        return success
+    }
+
+    private func closeRecordingWindow() {
+        // Post a notification to close the recording window
+        NotificationCenter.default.post(name: .closeRecordingWindow, object: nil)
     }
 
     // MARK: - History Management
@@ -244,3 +264,8 @@ final class AppState {
 
 // MARK: - AVFoundation Import
 import AVFoundation
+
+// MARK: - Notification Names
+extension Notification.Name {
+    static let closeRecordingWindow = Notification.Name("closeRecordingWindow")
+}
