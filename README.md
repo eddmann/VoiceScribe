@@ -1,3 +1,5 @@
+<img src="Assets.xcassets/AppIcon.appiconset/512-mac.png" width="200">
+
 # VoiceScribe
 
 Let your voice do the work.
