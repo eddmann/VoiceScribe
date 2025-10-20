@@ -58,8 +58,16 @@ struct RecordingView: View {
             return "Press Space to stop • ESC to cancel"
         case .processing:
             return "Processing audio..."
-        case .completed:
-            return "Text copied to clipboard!"
+        case .completed(_, let pasted, let smartPasteAttempted):
+            if pasted {
+                return "Text pasted!"
+            } else if smartPasteAttempted {
+                // Smart paste was enabled but failed (likely due to missing accessibility permission)
+                return "Copied to clipboard (enable accessibility for auto-paste)"
+            } else {
+                // Smart paste was not enabled, just copied to clipboard
+                return "Copied to clipboard!"
+            }
         case .error:
             return "Press Space to try again"
         }

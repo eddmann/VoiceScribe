@@ -44,7 +44,7 @@ enum RecordingState: Sendable, Equatable {
     case idle
     case recording
     case processing(progress: String)
-    case completed(text: String)
+    case completed(text: String, pasted: Bool, smartPasteAttempted: Bool = false)
     case error(String)
 
     var isRecording: Bool {
