@@ -18,7 +18,10 @@ Modern macOS transcription app built with Swift 6 and SwiftUI. Record audio with
 
 - macOS 14.0 (Sonoma) or later
 - Xcode 15.0 or later (for building from source)
-- Apple Silicon or Intel Mac with sufficient RAM for local models:
+- **Apple Silicon (M-series) Mac** for local WhisperKit transcription
+  - WhisperKit uses CoreML optimizations only available on Apple Silicon
+  - Intel Macs can still use the OpenAI Whisper API service
+- Sufficient RAM for local models:
   - Tiny model: ~40 MB RAM
   - Base model: ~150 MB RAM
   - Small model: ~500 MB RAM
