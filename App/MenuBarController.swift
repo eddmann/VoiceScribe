@@ -126,7 +126,7 @@ final class MenuBarController: NSObject {
 
     private func createRecordingWindow() -> NSWindow {
         let window = KeyableWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 280, height: 200),
+            contentRect: NSRect(x: 0, y: 0, width: 300, height: 240),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -134,6 +134,7 @@ final class MenuBarController: NSObject {
 
         window.isOpaque = false
         window.backgroundColor = .clear
+        window.hasShadow = true  // Enable window shadow
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 

@@ -7,10 +7,10 @@ struct RecordingView: View {
     @State private var isHovering = false
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Title
+        VStack(spacing: 20) {
+            // Title with subtle glow
             Text("VoiceScribe")
-                .font(.system(size: 20, weight: .semibold))
+                .font(.system(size: 22, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
 
             // Status indicator
@@ -22,12 +22,44 @@ struct RecordingView: View {
             // Instructions
             instructionsText
         }
-        .padding(20)
-        .frame(width: 280, height: 200)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.2), radius: 10)
+        .padding(28)
+        .frame(width: 300)
+        .background {
+            ZStack {
+                // Glass effect base
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+
+                // Gradient overlay for depth
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.05),
+                                Color.white.opacity(0.02)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0.1)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        }
         .focusable()  // Allow view to receive keyboard focus
+        .focusEffectDisabled()  // Remove focus ring
     }
 
     @ViewBuilder
@@ -48,6 +80,8 @@ struct RecordingView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var instructionsMessage: String {
@@ -93,15 +127,41 @@ struct RecordingButton: View {
 
     var body: some View {
         ZStack {
+            // Main button
             Circle()
-                .fill(isRecording ? Color.red : Color.blue)
-                .frame(width: 80, height: 80)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            isRecording ? Color.red : Color.blue,
+                            isRecording ? Color.red.opacity(0.8) : Color.blue.opacity(0.8)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 88, height: 88)
+                .overlay {
+                    Circle()
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.4),
+                                    Color.white.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 2
+                        )
+                }
 
+
+            // Icon
             Image(systemName: isRecording ? "stop.fill" : "mic.fill")
-                .font(.system(size: 32))
+                .font(.system(size: 36, weight: .medium))
                 .foregroundStyle(.white)
+                
         }
-        .shadow(color: (isRecording ? Color.red : Color.blue).opacity(0.3), radius: 8)
     }
 }
 
@@ -119,13 +179,16 @@ struct StatusView: View {
             Text(statusText)
                 .font(.subheadline)
                 .foregroundStyle(statusColor)
+                .lineLimit(nil)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
 
             if state.isProcessing {
                 ProgressView()
                     .scaleEffect(0.7)
             }
         }
-        .frame(height: 24)
+        .frame(minHeight: 24)
     }
 
     @ViewBuilder
