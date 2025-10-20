@@ -2,11 +2,11 @@ import Foundation
 import AVFoundation
 import os.log
 
-private let logger = Logger(subsystem: "com.eddmann.VoiceScribe", category: "AudioRecorder")
-
 /// Modern audio recorder using async/await and Swift Concurrency
 @MainActor
 final class AudioRecorder: NSObject, Sendable {
+    nonisolated private static let logger = Logger(subsystem: "com.eddmann.VoiceScribe", category: "AudioRecorder")
+
     private var audioRecorder: AVAudioRecorder?
     private var recordingURL: URL?
     private(set) var isRecording = false
@@ -74,10 +74,10 @@ final class AudioRecorder: NSObject, Sendable {
             recordingURL = fileURL
             isRecording = true
 
-            logger.info("Recording started: \(fileURL.lastPathComponent)")
+            Self.logger.info("Recording started: \(fileURL.lastPathComponent)")
             return fileURL
         } catch {
-            logger.error("Failed to start recording: \(error.localizedDescription)")
+            Self.logger.error("Failed to start recording: \(error.localizedDescription)")
             throw VoiceScribeError.recordingFailed(underlying: error.localizedDescription)
         }
     }
@@ -98,7 +98,7 @@ final class AudioRecorder: NSObject, Sendable {
             throw VoiceScribeError.noAudioRecorded
         }
 
-        logger.info("Recording stopped: \(url.lastPathComponent)")
+        Self.logger.info("Recording stopped: \(url.lastPathComponent)")
         return url
     }
 
@@ -130,7 +130,7 @@ final class AudioRecorder: NSObject, Sendable {
         // Delete the recording file
         if let url = recordingURL {
             try? FileManager.default.removeItem(at: url)
-            logger.info("Recording cancelled and deleted: \(url.lastPathComponent)")
+            Self.logger.info("Recording cancelled and deleted: \(url.lastPathComponent)")
         }
 
         audioRecorder = nil
@@ -158,10 +158,10 @@ final class AudioRecorder: NSObject, Sendable {
             }
 
             if !oldRecordings.isEmpty {
-                logger.info("Cleaned up \(oldRecordings.count) old recording(s)")
+                Self.logger.info("Cleaned up \(oldRecordings.count) old recording(s)")
             }
         } catch {
-            logger.error("Failed to cleanup old recordings: \(error.localizedDescription)")
+            Self.logger.error("Failed to cleanup old recordings: \(error.localizedDescription)")
         }
     }
 }
@@ -173,7 +173,7 @@ extension AudioRecorder: AVAudioRecorderDelegate {
         successfully flag: Bool
     ) {
         if !flag {
-            logger.error("Recording finished unsuccessfully")
+            Self.logger.error("Recording finished unsuccessfully")
         }
     }
 
@@ -182,7 +182,7 @@ extension AudioRecorder: AVAudioRecorderDelegate {
         error: (any Error)?
     ) {
         if let error = error {
-            logger.error("Recording encode error: \(error.localizedDescription)")
+            Self.logger.error("Recording encode error: \(error.localizedDescription)")
         }
     }
 }

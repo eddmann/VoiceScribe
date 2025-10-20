@@ -55,7 +55,7 @@ final class AppFocusManager {
         }
 
         // Activate the application
-        let success = app.activate(options: [.activateIgnoringOtherApps])
+        let success = app.activate()
 
         if success {
             if let appName = app.localizedName {

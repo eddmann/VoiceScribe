@@ -10,7 +10,6 @@
 		688FC48D2EA563180010F082 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48C2EA563180010F082 /* WhisperKit */; };
 		688FC4902EA563240010F082 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48F2EA563240010F082 /* KeyboardShortcuts */; };
 		688FC4D02EA563590010F082 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 688FC4CC2EA563590010F082 /* Assets.xcassets */; };
-		688FC4D12EA563590010F082 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 688FC4CD2EA563590010F082 /* Info.plist */; };
 		688FC4D22EA563590010F082 /* VoiceScribeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4B72EA563590010F082 /* VoiceScribeApp.swift */; };
 		688FC4D32EA563590010F082 /* WhisperKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C42EA563590010F082 /* WhisperKitService.swift */; };
 		688FC4D42EA563590010F082 /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4BC2EA563590010F082 /* TranscriptionService.swift */; };
@@ -44,7 +43,6 @@
 		688FC4C72EA563590010F082 /* RecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingView.swift; sourceTree = "<group>"; };
 		688FC4C92EA563590010F082 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		688FC4CC2EA563590010F082 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		688FC4CD2EA563590010F082 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		688FC4E12EA563590010F082 /* AppFocusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFocusManager.swift; sourceTree = "<group>"; };
 		688FC4E32EA563590010F082 /* PasteSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteSimulator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -72,7 +70,6 @@
 				688FC4C62EA563590010F082 /* Shared */,
 				688FC4CB2EA563590010F082 /* UI */,
 				688FC4CC2EA563590010F082 /* Assets.xcassets */,
-				688FC4CD2EA563590010F082 /* Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -242,7 +239,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				688FC4D02EA563590010F082 /* Assets.xcassets in Resources */,
-				688FC4D12EA563590010F082 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,7 +407,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "VoiceScribe-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "VoiceScribe needs accessibility permission to automatically paste transcriptions into your apps.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Edd Mann";
@@ -448,7 +443,6 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "VoiceScribe-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "VoiceScribe needs accessibility permission to automatically paste transcriptions into your apps.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2025 Edd Mann";

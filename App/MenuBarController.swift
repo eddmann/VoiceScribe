@@ -169,8 +169,10 @@ final class MenuBarController: NSObject {
 
     deinit {
         // Clean up event monitor
-        if let monitor = eventMonitor {
-            NSEvent.removeMonitor(monitor)
+        MainActor.assumeIsolated {
+            if let monitor = eventMonitor {
+                NSEvent.removeMonitor(monitor)
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 import Foundation
 import AppKit
-import ApplicationServices
+@preconcurrency import ApplicationServices
 import os.log
 
 private let logger = Logger(subsystem: "com.eddmann.VoiceScribe", category: "PasteSimulator")
@@ -25,10 +25,10 @@ final class PasteSimulator {
 
     /// Request accessibility permissions from the user
     /// This will show the system dialog prompting the user to enable accessibility
-    func requestAccessibilityPermission() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+    nonisolated func requestAccessibilityPermission() {
+        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        let options = [promptKey: true]
         AXIsProcessTrustedWithOptions(options as CFDictionary)
-        logger.info("Requested accessibility permissions")
     }
 
     /// Open System Settings to the Privacy & Security > Accessibility pane
