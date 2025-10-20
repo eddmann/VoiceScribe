@@ -99,36 +99,72 @@ struct SettingsView: View {
     }
 
     private var aboutTab: some View {
-        ScrollView {
-            VStack(alignment: .center, spacing: 24) {
-                Spacer()
-                    .frame(height: 40)
+        VStack(spacing: 0) {
+            Spacer()
 
-                // App Icon
+            // App Icon
+            if let appIconImage = NSImage(named: "AppIcon") {
+                Image(nsImage: appIconImage)
+                    .resizable()
+                    .frame(width: 128, height: 128)
+                    .cornerRadius(22)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+            } else {
                 Image(systemName: "waveform.circle.fill")
                     .font(.system(size: 80))
                     .foregroundStyle(.blue)
-
-                VStack(spacing: 8) {
-                    Text("VoiceScribe")
-                        .font(.title.bold())
-
-                    Text("Version 1.0.0")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                Text("Modern macOS transcription app built with Swift 6 and SwiftUI.")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-
-                Spacer()
             }
-            .frame(maxWidth: .infinity)
-            .padding(24)
+
+            Spacer()
+                .frame(height: 24)
+
+            // App Name
+            Text("VoiceScribe")
+                .font(.system(size: 28, weight: .semibold))
+
+            Spacer()
+                .frame(height: 8)
+
+            // Version
+            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+               let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                Text("Version \(version) (\(build))")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+                .frame(height: 32)
+
+            // Copyright
+            VStack(spacing: 8) {
+                Text("© 2025 Edd Mann")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Text("Let your voice do the work.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+                .frame(height: 32)
+
+            // Project Link
+            Link(destination: URL(string: "https://github.com/eddmann/VoiceScribe")!) {
+                HStack {
+                    Image(systemName: "link.circle.fill")
+                    Text("View Project on GitHub")
+                }
+                .frame(maxWidth: 280)
+                .padding(.vertical, 10)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Service Selection
@@ -365,15 +401,19 @@ struct SettingsView: View {
             Text("Keyboard Shortcut")
                 .font(.headline)
 
-            VStack(alignment: .leading, spacing: 8) {
-                KeyboardShortcuts.Recorder("Toggle Recording:", name: .toggleRecording)
-                    .padding(.vertical, 4)
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Toggle Recording:")
+                        .font(.subheadline)
+                    Text("Default: ⌥⇧Space (Option-Shift-Space)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
-                Text("Default: ⌥⇧Space (Option-Shift-Space)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Spacer()
+
+                KeyboardShortcuts.Recorder("", name: .toggleRecording)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
             .background(.quaternary.opacity(0.3))
             .clipShape(RoundedRectangle(cornerRadius: 8))
