@@ -7,11 +7,10 @@ Let your voice do the work.
 ## Features
 
 - **Global hotkey recording** - Press Option-Shift-Space to record from anywhere (customizable)
-- **Dual transcription engines** - Choose between privacy-focused local WhisperKit or cloud-based OpenAI
-- **On-device processing** - All audio stays on your Mac with WhisperKit (Apple Silicon only)
+- **Dual transcription engines** - Choose between privacy-focused local [WhisperKit](https://github.com/argmaxinc/WhisperKit) (on-device, Apple Silicon only) or cloud-based OpenAI
 - **Auto-paste** - Transcriptions paste directly into your active app
-- **Model management** - Download and switch between Tiny, Base, Small, and Medium models
-- **Clipboard history** - Review past transcriptions anytime
+- **Model management** - Download and switch between Tiny, Base, Small, and Medium WhisperKit models
+- **Transcription history** - Review past transcriptions anytime
 - **Secure storage** - API keys encrypted in macOS Keychain
 
 ## Installation
@@ -36,7 +35,7 @@ xattr -cr /Applications/VoiceScribe.app
 
 1. VoiceScribe appears in your menu bar as a waveform icon
 2. Click and select "Settings" to choose your transcription service:
-   - Local WhisperKit (recommended) - Download a model to get started
+   - Local [WhisperKit](https://github.com/argmaxinc/WhisperKit) (recommended) - Download a model to get started
    - OpenAI Whisper API - Add your API key from [OpenAI](https://platform.openai.com/api-keys)
 3. Enable "Auto-paste" in Preferences and grant Accessibility permission if desired
 
@@ -48,7 +47,7 @@ xattr -cr /Applications/VoiceScribe.app
 
 ## Privacy
 
-- All audio processing happens on-device with WhisperKit (no network transmission)
+- All audio processing happens on-device with [WhisperKit](https://github.com/argmaxinc/WhisperKit) (no network transmission)
 - OpenAI mode sends audio to their servers - review [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy)
 - API keys encrypted in macOS Keychain with device-only access
 - No telemetry or analytics
