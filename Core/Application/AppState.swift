@@ -216,6 +216,9 @@ final class AppState {
 
         do {
             try context.save()
+
+            // Automatically clean up old records beyond the limit
+            await cleanupOldRecords(context: context)
         } catch {
             print("Failed to save transcription: \(error)")
         }
@@ -231,6 +234,33 @@ final class AppState {
             return CMTimeGetSeconds(duration)
         } catch {
             return 0
+        }
+    }
+
+    private func cleanupOldRecords(context: ModelContext) async {
+        // Get the history limit from UserDefaults (default: 25)
+        let historyLimit = UserDefaults.standard.integer(forKey: "historyLimit")
+        let limit = historyLimit > 0 ? historyLimit : 25
+
+        do {
+            // Fetch all records sorted by timestamp (newest first)
+            let descriptor = FetchDescriptor<TranscriptionRecord>(
+                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+            )
+            let allRecords = try context.fetch(descriptor)
+
+            // If we have more records than the limit, delete the oldest ones
+            if allRecords.count > limit {
+                let recordsToDelete = Array(allRecords.dropFirst(limit))
+                for record in recordsToDelete {
+                    context.delete(record)
+                }
+
+                try context.save()
+                print("Cleaned up \(recordsToDelete.count) old transcription(s)")
+            }
+        } catch {
+            print("Failed to cleanup old records: \(error)")
         }
     }
 
