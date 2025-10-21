@@ -214,9 +214,22 @@ struct SettingsView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                SecureField("sk-...", text: $openAIKey)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.system(.body, design: .monospaced))
+                HStack {
+                    SecureField("sk-...", text: $openAIKey)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+
+                    if !openAIKey.isEmpty {
+                        Button(action: {
+                            clearOpenAIKey()
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Clear API key")
+                    }
+                }
 
                 if showingAPIKeySaved {
                     Label("API key saved securely", systemImage: "checkmark.circle.fill")
@@ -322,11 +335,14 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.green)
 
-                Button("Delete") {
+                Button(action: {
                     deleteModel(model)
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundStyle(.red)
                 }
-                .font(.caption)
                 .buttonStyle(.borderless)
+                .help("Delete model")
             } else {
                 Button("Download") {
                     downloadModel(model)
@@ -531,6 +547,20 @@ struct SettingsView: View {
                 showingAPIKeySaved = false
             } catch {
                 print("Failed to save API key: \(error)")
+            }
+        }
+    }
+
+    private func clearOpenAIKey() {
+        Task {
+            do {
+                try await KeychainManager.shared.delete(for: "openai")
+                await MainActor.run {
+                    openAIKey = ""
+                    showingAPIKeySaved = false
+                }
+            } catch {
+                print("Failed to delete API key: \(error)")
             }
         }
     }
