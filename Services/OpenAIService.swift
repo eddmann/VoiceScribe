@@ -3,15 +3,57 @@ import os.log
 
 private let logger = Logger(subsystem: "com.eddmann.VoiceScribe", category: "OpenAIService")
 
-/// OpenAI Whisper API service implementation
+/// OpenAI Transcription API service implementation
 @MainActor
 final class OpenAIService: TranscriptionService {
-    let name = "OpenAI Whisper"
+    let name = "OpenAI Transcription"
     let identifier = "openai"
     let requiresAPIKey = true
 
     private let apiEndpoint = "https://api.openai.com/v1/audio/transcriptions"
-    private let model = "whisper-1"
+
+    /// Available OpenAI transcription models
+    enum Model: String, CaseIterable, Codable {
+        case whisper1 = "whisper-1"
+        case gpt4oTranscribe = "gpt-4o-transcribe"
+        case gpt4oMiniTranscribe = "gpt-4o-mini-transcribe"
+
+        var displayName: String {
+            switch self {
+            case .whisper1:
+                return "Whisper V2"
+            case .gpt4oTranscribe:
+                return "GPT-4o Transcribe"
+            case .gpt4oMiniTranscribe:
+                return "GPT-4o Mini Transcribe"
+            }
+        }
+
+        var description: String {
+            switch self {
+            case .whisper1:
+                return "Powered by open source Whisper V2 • Standard transcription model"
+            case .gpt4oTranscribe:
+                return "GPT-4o powered transcription • Higher accuracy than Whisper"
+            case .gpt4oMiniTranscribe:
+                return "Lighter GPT-4o variant • Faster and more cost-effective"
+            }
+        }
+    }
+
+    private var selectedModel: Model {
+        if let savedModel = UserDefaults.standard.string(forKey: "openai_model"),
+           let model = Model(rawValue: savedModel) {
+            return model
+        }
+        return .whisper1 // Default
+    }
+
+    /// Reload the model selection from UserDefaults
+    func reloadModelFromPreferences() {
+        // Model is read from UserDefaults on each use via computed property
+        logger.info("Reloaded OpenAI model from preferences: \(self.selectedModel.rawValue)")
+    }
 
     var isAvailable: Bool {
         get async {
@@ -58,7 +100,7 @@ final class OpenAIService: TranscriptionService {
         // Add model parameter
         body.append("--\(boundary)\r\n")
         body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n")
-        body.append("\(model)\r\n")
+        body.append("\(selectedModel.rawValue)\r\n")
 
         // Add audio file
         body.append("--\(boundary)\r\n")
