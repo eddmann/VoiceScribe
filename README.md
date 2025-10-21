@@ -13,6 +13,27 @@ Let your voice do the work.
 - **Transcription history** - Review past transcriptions anytime
 - **Secure storage** - API keys encrypted in macOS Keychain
 
+## Screenshots
+
+### Menu Bar Interface
+
+<img src="README/menu-bar.png" width="300" alt="VoiceScribe menu bar">
+
+### Recording Workflow
+
+<p align="center">
+  <img src="README/record-ready.png" width="260" alt="Recording window - Ready">
+  <img src="README/record-recording.png" width="260" alt="Recording window - Recording">
+  <img src="README/record-success.png" width="260" alt="Recording window - Success">
+</p>
+
+### Settings
+
+<p align="center">
+  <img src="README/settings-service.png" width="400" alt="Settings - Service Selection">
+  <img src="README/settings-preferences.png" width="400" alt="Settings - Preferences">
+</p>
+
 ## Installation
 
 1. Download the latest release
