@@ -74,17 +74,17 @@ jobs:
           ### Features
 
           - **Global hotkey recording** - Press Option-Shift-Space to record from anywhere (customizable)
-          - **Dual transcription engines** - Choose between privacy-focused local WhisperKit or cloud-based OpenAI
-          - **On-device processing** - All audio stays on your Mac with WhisperKit (Apple Silicon only)
+          - **Dual transcription engines** - Choose between privacy-focused local [WhisperKit](https://github.com/argmaxinc/WhisperKit) (on-device, Apple Silicon only) or cloud-based OpenAI Transcription
+          - **Multiple AI models** - Download and switch between WhisperKit models (Tiny/Base/Small/Medium) or select OpenAI models (Whisper V2/GPT-4o/GPT-4o Mini)
           - **Auto-paste** - Transcriptions paste directly into your active app
-          - **Model management** - Download and switch between Tiny, Base, Small, and Medium models
-          - **Clipboard history** - Review past transcriptions anytime
+          - **Transcription history** - Review past transcriptions anytime
           - **Secure storage** - API keys encrypted in macOS Keychain
 
           ### Requirements
 
           - macOS 14.0 (Sonoma) or later
-          - Universal Binary (Intel + Apple Silicon)
+          - Apple Silicon (M-series) Mac for local WhisperKit transcription
+          - Intel Macs supported with OpenAI Transcription API
 
           ### Notes
 
@@ -92,12 +92,12 @@ jobs:
 
           For auto-paste functionality, grant Accessibility permissions when prompted in System Settings → Privacy & Security → Accessibility.
 
-          ### Security & Privacy
+          ### Privacy
 
-          - All audio processing happens on-device with WhisperKit (no network transmission)
+          - All audio processing happens on-device with [WhisperKit](https://github.com/argmaxinc/WhisperKit) (no network transmission)
           - OpenAI mode sends audio to their servers - review [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy)
           - API keys encrypted in macOS Keychain with device-only access
-          - Zero telemetry or analytics collection
+          - No telemetry or analytics
           EOF
 
           echo "Generated release notes"
