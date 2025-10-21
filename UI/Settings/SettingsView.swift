@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var downloadError: String?
     @State private var hasAccessibilityPermission = false
     @State private var permissionCheckTask: Task<Void, Never>?
+    @AppStorage("historyLimit") private var historyLimit: Int = 25
 
     init(appState: AppState) {
         self.appState = appState
@@ -93,6 +94,10 @@ struct SettingsView: View {
                 Divider()
 
                 keyboardShortcutSection
+
+                Divider()
+
+                historySection
             }
             .padding(24)
         }
@@ -413,6 +418,40 @@ struct SettingsView: View {
                 Spacer()
 
                 KeyboardShortcuts.Recorder("", name: .toggleRecording)
+            }
+            .padding()
+            .background(.quaternary.opacity(0.3))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - History Section
+
+    private var historySection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("History")
+                .font(.headline)
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Number of transcriptions to keep:")
+                        .font(.subheadline)
+                    Text("Older transcriptions will be removed from the history view")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Picker("", selection: $historyLimit) {
+                    Text("10").tag(10)
+                    Text("25").tag(25)
+                    Text("50").tag(50)
+                    Text("100").tag(100)
+                }
+                .pickerStyle(.menu)
+                .frame(width: 80)
             }
             .padding()
             .background(.quaternary.opacity(0.3))

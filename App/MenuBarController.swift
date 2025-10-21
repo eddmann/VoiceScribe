@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import SwiftData
 
 /// Custom NSWindow subclass that allows borderless windows to become key
 class KeyableWindow: NSWindow {
@@ -18,11 +19,14 @@ final class MenuBarController: NSObject {
     private var statusItem: NSStatusItem?
     private var recordingWindow: NSWindow?
     private var settingsWindow: NSWindow?
+    private var historyWindow: NSWindow?
     private let appState: AppState
+    private let modelContainer: ModelContainer?
     private var eventMonitor: Any?
 
-    init(appState: AppState) {
+    init(appState: AppState, modelContainer: ModelContainer? = nil) {
         self.appState = appState
+        self.modelContainer = modelContainer
         super.init()
         setupMenuBar()
         setupNotifications()
@@ -66,6 +70,15 @@ final class MenuBarController: NSObject {
         menu.addItem(recordItem)
 
         menu.addItem(NSMenuItem.separator())
+
+        // History item
+        let historyItem = NSMenuItem(
+            title: "History...",
+            action: #selector(showHistory),
+            keyEquivalent: "h"
+        )
+        historyItem.target = self
+        menu.addItem(historyItem)
 
         // Settings item
         let settingsItem = NSMenuItem(
@@ -225,6 +238,43 @@ final class MenuBarController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    @objc func showHistory() {
+        // If history window already exists and is visible, just bring it to front
+        if let window = historyWindow, window.isVisible {
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        // Create history window
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 700, height: 500),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+
+        window.title = "Transcription History"
+        window.isReleasedWhenClosed = false
+
+        // Create history view - use shared model container to prevent observation errors
+        if let container = modelContainer {
+            window.contentView = NSHostingView(rootView: HistoryView().modelContainer(container))
+        } else {
+            // Fallback: create new container (shouldn't happen in normal operation)
+            window.contentView = NSHostingView(rootView: HistoryView().modelContainer(for: TranscriptionRecord.self))
+        }
+        window.center()
+
+        // Set delegate to handle window close
+        window.delegate = self
+
+        // Store reference
+        historyWindow = window
+
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     @objc private func quit() {
         appState.cleanup()
         NSApplication.shared.terminate(nil)
@@ -241,9 +291,11 @@ extension MenuBarController: NSWindowDelegate {
         guard let window = notification.object as? NSWindow else { return }
 
         Task { @MainActor in
-            // Clean up settings window reference when it closes
+            // Clean up window references when they close
             if window === self.settingsWindow {
                 self.settingsWindow = nil
+            } else if window === self.historyWindow {
+                self.historyWindow = nil
             }
         }
     }

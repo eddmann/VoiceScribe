@@ -42,8 +42,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Menu bar app - hide from Dock (even in debug mode)
         NSApplication.shared.setActivationPolicy(.accessory)
 
-        // Setup menu bar
-        menuBarController = MenuBarController(appState: appState)
+        // Setup menu bar with shared model container
+        menuBarController = MenuBarController(appState: appState, modelContainer: modelContainer)
 
         // Setup global hotkey
         hotkeyManager.startListening { [weak self] in
