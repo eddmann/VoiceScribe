@@ -118,6 +118,9 @@ final class AppState {
             whisperKit.progressCallback = { [weak self] progress in
                 self?.recordingState = .processing(progress: progress)
             }
+        } else if let openAI = service as? OpenAIService {
+            // Reload model from preferences in case it changed
+            openAI.reloadModelFromPreferences()
         }
 
         recordingState = .processing(progress: "Transcribing with \(service.name)...")

@@ -6,7 +6,7 @@ This document provides essential context for AI development assistants (like Cla
 
 **VoiceScribe** is a modern macOS transcription application that allows users to record audio via a global hotkey and receive instant transcriptions using either:
 - **Local WhisperKit** (on-device, Apple Silicon only, privacy-first)
-- **OpenAI Whisper API** (cloud-based, works on Intel Macs)
+- **OpenAI Transcription** (cloud-based, supports Whisper and GPT-4o models, works on Intel Macs)
 
 **Tech Stack:**
 - Swift 6.0 with strict concurrency
@@ -150,11 +150,12 @@ protocol TranscriptionService: AnyObject {
 
 **`OpenAIService.swift`** (Cloud Transcription)
 - Implements `TranscriptionService` protocol
-- Uses OpenAI Whisper API
+- Uses OpenAI Transcription API
 - Supports Intel and Apple Silicon
 - Requires API key stored in Keychain
-- Uses `whisper-1` model
+- Models: `whisper-1` (default), `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`
 - Key features:
+  - Configurable model selection
   - Multipart form upload
   - API key validation
   - Error handling for API failures
@@ -203,7 +204,7 @@ protocol TranscriptionService: AnyObject {
   - **About**: App info, version
 - Service-specific configuration:
   - WhisperKit: Model selection, download management
-  - OpenAI: API key input and validation
+  - OpenAI: Model selection (Whisper/GPT-4o), API key input and validation
 - Permission management for auto-paste
 - Links to System Settings for Accessibility
 

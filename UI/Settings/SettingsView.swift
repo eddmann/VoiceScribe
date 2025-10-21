@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var selectedService: String
     @State private var smartPasteEnabled: Bool = true
     @State private var openAIKey: String = ""
+    @State private var selectedOpenAIModel: OpenAIService.Model = .whisper1
     @State private var selectedWhisperModel: WhisperKitService.Model = .tiny
     @State private var showingAPIKeySaved = false
     @State private var downloadingModels: Set<WhisperKitService.Model> = []
@@ -57,6 +58,9 @@ struct SettingsView: View {
         }
         .onChange(of: selectedService) { _, newValue in
             appState.selectedServiceIdentifier = newValue
+        }
+        .onChange(of: selectedOpenAIModel) { _, newValue in
+            UserDefaults.standard.set(newValue.rawValue, forKey: "openai_model")
         }
         .onChange(of: selectedWhisperModel) { _, newValue in
             UserDefaults.standard.set(newValue.rawValue, forKey: "whisperkit_model")
@@ -181,7 +185,7 @@ struct SettingsView: View {
 
             Picker("Service", selection: $selectedService) {
                 Text("Local WhisperKit").tag("whisperkit")
-                Text("OpenAI Whisper API").tag("openai")
+                Text("OpenAI Transcription").tag("openai")
             }
             .pickerStyle(.segmented)
 
@@ -194,7 +198,7 @@ struct SettingsView: View {
     private var serviceDescription: String {
         switch selectedService {
         case "openai":
-            return "Cloud-based transcription using OpenAI's Whisper API. Requires internet and API key."
+            return "Cloud-based transcription using OpenAI's API. Supports Whisper and GPT-4o models. Requires internet and API key."
         case "whisperkit":
             return "Local transcription using CoreML. Audio never leaves your device. No API key needed."
         default:
@@ -209,6 +213,31 @@ struct SettingsView: View {
             Text("OpenAI Configuration")
                 .font(.headline)
 
+            // Model Selection
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Model")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Picker("Model", selection: $selectedOpenAIModel) {
+                    ForEach(OpenAIService.Model.allCases, id: \.self) { model in
+                        VStack(alignment: .leading) {
+                            Text(model.displayName)
+                        }
+                        .tag(model)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Text(selectedOpenAIModel.description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .background(.quaternary.opacity(0.3))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // API Key
             VStack(alignment: .leading, spacing: 8) {
                 Text("API Key")
                     .font(.subheadline)
@@ -484,6 +513,12 @@ struct SettingsView: View {
             if let key = await KeychainManager.shared.retrieve(for: "openai") {
                 openAIKey = key
             }
+        }
+
+        // Load saved OpenAI model preference
+        if let savedModel = UserDefaults.standard.string(forKey: "openai_model"),
+           let model = OpenAIService.Model(rawValue: savedModel) {
+            selectedOpenAIModel = model
         }
 
         // Load saved WhisperKit model preference
