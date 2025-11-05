@@ -1,6 +1,6 @@
-<img src="Assets.xcassets/AppIcon.appiconset/512-mac.png" width="200">
-
 # VoiceScribe
+
+![VoiceScribe](README/heading.png)
 
 Let your voice do the work.
 
