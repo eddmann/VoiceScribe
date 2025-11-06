@@ -7,8 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5a6ee497cf8c49b78e30153f /* Date+RelativeTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */; };
 		688FC48D2EA563180010F082 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48C2EA563180010F082 /* WhisperKit */; };
 		688FC4902EA563240010F082 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48F2EA563240010F082 /* KeyboardShortcuts */; };
+		A1B2C3D62EA563470010F082 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D42EA563450010F082 /* MLX */; };
+		A1B2C3D72EA563480010F082 /* MLXRandom in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D52EA563460010F082 /* MLXRandom */; };
+		A1B2C3D92EA5634A0010F082 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D82EA563490010F082 /* MLXLLM */; };
+		A1B2C3DB2EA5634C0010F082 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DA2EA5634B0010F082 /* MLXLMCommon */; };
 		688FC4D02EA563590010F082 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 688FC4CC2EA563590010F082 /* Assets.xcassets */; };
 		688FC4D22EA563590010F082 /* VoiceScribeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4B72EA563590010F082 /* VoiceScribeApp.swift */; };
 		688FC4D32EA563590010F082 /* WhisperKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C42EA563590010F082 /* WhisperKitService.swift */; };
@@ -26,7 +31,7 @@
 		688FC4E02EA563590010F082 /* AppFocusManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4E12EA563590010F082 /* AppFocusManager.swift */; };
 		688FC4E22EA563590010F082 /* PasteSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4E32EA563590010F082 /* PasteSimulator.swift */; };
 		701843d9b6cd4807bc3f7a3a /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890d01bf660e4a958d04321b /* HistoryView.swift */; };
-		5a6ee497cf8c49b78e30153f /* Date+RelativeTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */; };
+		985AC248CCA44A1F9E0696B3 /* MLXService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6E5C195E684FCF8EE41B0D /* MLXService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +52,7 @@
 		688FC4CC2EA563590010F082 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		688FC4E12EA563590010F082 /* AppFocusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFocusManager.swift; sourceTree = "<group>"; };
 		688FC4E32EA563590010F082 /* PasteSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteSimulator.swift; sourceTree = "<group>"; };
+		6E6E5C195E684FCF8EE41B0D /* MLXService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXService.swift; sourceTree = "<group>"; };
 		890d01bf660e4a958d04321b /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+RelativeTime.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -58,6 +64,10 @@
 			files = (
 				688FC48D2EA563180010F082 /* WhisperKit in Frameworks */,
 				688FC4902EA563240010F082 /* KeyboardShortcuts in Frameworks */,
+				A1B2C3D62EA563470010F082 /* MLX in Frameworks */,
+				A1B2C3D72EA563480010F082 /* MLXRandom in Frameworks */,
+				A1B2C3D92EA5634A0010F082 /* MLXLLM in Frameworks */,
+				A1B2C3DB2EA5634C0010F082 /* MLXLMCommon in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -137,6 +147,7 @@
 			children = (
 				688FC4E12EA563590010F082 /* AppFocusManager.swift */,
 				688FC4C22EA563590010F082 /* AudioRecorder.swift */,
+				6E6E5C195E684FCF8EE41B0D /* MLXService.swift */,
 				688FC4C32EA563590010F082 /* OpenAIService.swift */,
 				688FC4E32EA563590010F082 /* PasteSimulator.swift */,
 				688FC4C42EA563590010F082 /* WhisperKitService.swift */,
@@ -167,14 +178,6 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		688FC4CE2EA563590010F082 /* History */ = {
-			isa = PBXGroup;
-			children = (
-				890d01bf660e4a958d04321b /* HistoryView.swift */,
-			);
-			path = History;
-			sourceTree = "<group>";
-		};
 		688FC4CB2EA563590010F082 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -183,6 +186,14 @@
 				688FC4CA2EA563590010F082 /* Settings */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		688FC4CE2EA563590010F082 /* History */ = {
+			isa = PBXGroup;
+			children = (
+				890d01bf660e4a958d04321b /* HistoryView.swift */,
+			);
+			path = History;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -204,6 +215,10 @@
 			packageProductDependencies = (
 				688FC48C2EA563180010F082 /* WhisperKit */,
 				688FC48F2EA563240010F082 /* KeyboardShortcuts */,
+				A1B2C3D42EA563450010F082 /* MLX */,
+				A1B2C3D52EA563460010F082 /* MLXRandom */,
+				A1B2C3D82EA563490010F082 /* MLXLLM */,
+				A1B2C3DA2EA5634B0010F082 /* MLXLMCommon */,
 			);
 			productName = VoiceScribe;
 			productReference = 68491FB72EA562C3003F79B2 /* VoiceScribe.app */;
@@ -236,6 +251,7 @@
 			packageReferences = (
 				688FC48B2EA563180010F082 /* XCRemoteSwiftPackageReference "WhisperKit" */,
 				688FC48E2EA563240010F082 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 68491FB82EA562C3003F79B2 /* Products */;
@@ -269,6 +285,7 @@
 				688FC4D62EA563590010F082 /* AppState.swift in Sources */,
 				688FC4D72EA563590010F082 /* SettingsView.swift in Sources */,
 				688FC4D82EA563590010F082 /* OpenAIService.swift in Sources */,
+				985AC248CCA44A1F9E0696B3 /* MLXService.swift in Sources */,
 				688FC4D92EA563590010F082 /* KeychainManager.swift in Sources */,
 				688FC4DA2EA563590010F082 /* RecordingView.swift in Sources */,
 				688FC4DB2EA563590010F082 /* AudioRecorder.swift in Sources */,
@@ -504,12 +521,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		68534FB32EBCD51500E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.29.1;
+			};
+		};
 		688FC48B2EA563180010F082 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.14.1;
 			};
 		};
 		688FC48E2EA563240010F082 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
@@ -518,6 +543,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.4.0;
+			};
+		};
+		68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 2.25.7;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -532,6 +565,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 688FC48E2EA563240010F082 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
+		};
+		A1B2C3D42EA563450010F082 /* MLX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLX;
+		};
+		A1B2C3D52EA563460010F082 /* MLXRandom */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXRandom;
+		};
+		A1B2C3D82EA563490010F082 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLLM;
+		};
+		A1B2C3DA2EA5634B0010F082 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */;
+			productName = MLXLMCommon;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

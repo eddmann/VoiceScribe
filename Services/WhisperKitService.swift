@@ -17,25 +17,27 @@ final class WhisperKitService: TranscriptionService {
     /// Optional progress callback for transcription operations
     var progressCallback: (@MainActor (String) -> Void)?
 
+    /// Check if post-processing is enabled
+    private var isPostProcessingEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "whisperkit_post_process_enabled")
+    }
+
     /// Available WhisperKit models (from smallest to largest)
     enum Model: String, CaseIterable {
-        case tiny = "openai_whisper-tiny"
         case base = "openai_whisper-base"
         case small = "openai_whisper-small"
         case medium = "openai_whisper-medium"
 
         var displayName: String {
             switch self {
-            case .tiny: return "Tiny (fast, less accurate)"
-            case .base: return "Base (balanced)"
-            case .small: return "Small (good quality)"
-            case .medium: return "Medium (best quality)"
+            case .base: return "Base (Fast)"
+            case .small: return "Small (Balanced)"
+            case .medium: return "Medium (Quality)"
             }
         }
 
         var approximateSize: String {
             switch self {
-            case .tiny: return "~40 MB"
             case .base: return "~150 MB"
             case .small: return "~500 MB"
             case .medium: return "~1.5 GB"
@@ -44,7 +46,6 @@ final class WhisperKitService: TranscriptionService {
 
         var estimatedBytes: Int64 {
             switch self {
-            case .tiny: return 39 * 1024 * 1024
             case .base: return 142 * 1024 * 1024
             case .small: return 466 * 1024 * 1024
             case .medium: return 1536 * 1024 * 1024
@@ -53,14 +54,14 @@ final class WhisperKitService: TranscriptionService {
     }
 
     init() {
-        // Load saved model preference or default to tiny
+        // Load saved model preference or default to base
         if let savedModel = UserDefaults.standard.string(forKey: "whisperkit_model"),
            let model = Model.allCases.first(where: { $0.rawValue == savedModel }) {
             self.currentModel = model
         } else {
-            self.currentModel = .tiny
+            self.currentModel = .base
             // Save the default
-            UserDefaults.standard.set(Model.tiny.rawValue, forKey: "whisperkit_model")
+            UserDefaults.standard.set(Model.base.rawValue, forKey: "whisperkit_model")
         }
     }
 
@@ -175,7 +176,23 @@ final class WhisperKitService: TranscriptionService {
             }
 
             logger.info("Local transcription successful: \(text.count) chars")
-            return text.trimmingCharacters(in: .whitespacesAndNewlines)
+            var transcribedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Apply post-processing if enabled
+            if isPostProcessingEnabled {
+                logger.info("Post-processing enabled for WhisperKit")
+                progressCallback?("Enhancing with AI post-processing...")
+                do {
+                    transcribedText = try await postProcess(text: transcribedText)
+                    logger.info("Post-processing successful")
+                } catch {
+                    // Log error but don't fail the transcription
+                    logger.error("Post-processing failed: \(error.localizedDescription)")
+                    // Continue with original transcription
+                }
+            }
+
+            return transcribedText
 
         } catch {
             logger.error("WhisperKit transcription error: \(error.localizedDescription)")
@@ -323,6 +340,43 @@ final class WhisperKitService: TranscriptionService {
         if FileManager.default.fileExists(atPath: modelPath.path) {
             try FileManager.default.removeItem(at: modelPath)
             logger.info("Deleted model: \(model.displayName)")
+        }
+    }
+
+    // MARK: - Post-Processing
+
+    /// Post-process transcribed text using MLX local AI model
+    /// - Returns: AI-enhanced text if successful, original text if MLX unavailable or fails
+    /// - Note: No fallback to basic cleanup - it's real AI enhancement or nothing
+    private func postProcess(text: String) async throws -> String {
+        let mlxService = MLXService.shared
+
+        // Check if MLX is available (Apple Silicon only)
+        guard mlxService.isAvailable else {
+            logger.warning("MLX not available (requires Apple Silicon M1/M2/M3/M4)")
+            throw VoiceScribeError.postProcessingFailed(
+                reason: "MLX requires Apple Silicon. Post-processing disabled."
+            )
+        }
+
+        // Check if model is downloaded
+        let currentMLXModel = mlxService.getCurrentModel()
+        guard mlxService.isModelDownloaded(currentMLXModel) else {
+            logger.warning("MLX model not downloaded: \(currentMLXModel.displayName)")
+            throw VoiceScribeError.modelNotFound(modelName: currentMLXModel.displayName)
+        }
+
+        // Attempt MLX post-processing
+        logger.info("Starting MLX local AI post-processing with \(currentMLXModel.displayName)")
+        do {
+            let enhanced = try await mlxService.postProcess(text: text)
+            logger.info("MLX post-processing successful")
+            return enhanced
+        } catch {
+            logger.error("MLX post-processing failed: \(error.localizedDescription)")
+            throw VoiceScribeError.postProcessingFailed(
+                reason: "AI enhancement failed: \(error.localizedDescription)"
+            )
         }
     }
 }
