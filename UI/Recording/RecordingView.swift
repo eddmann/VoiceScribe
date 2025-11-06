@@ -210,8 +210,16 @@ struct StatusView: View {
         case .completed:
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-        case .processing:
-            EmptyView()
+        case .processing(let progress):
+            // Show sparkle icon when post-processing
+            if progress.localizedCaseInsensitiveContains("post-processing") ||
+               progress.localizedCaseInsensitiveContains("enhancing") {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(.orange)
+                    .symbolEffect(.pulse, options: .repeating)
+            } else {
+                EmptyView()
+            }
         case .idle:
             EmptyView()
         }

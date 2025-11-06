@@ -121,6 +121,11 @@ final class AppState {
         } else if let openAI = service as? OpenAIService {
             // Reload model from preferences in case it changed
             openAI.reloadModelFromPreferences()
+
+            // Set up progress callback for post-processing
+            openAI.progressCallback = { [weak self] progress in
+                self?.recordingState = .processing(progress: progress)
+            }
         }
 
         recordingState = .processing(progress: "Transcribing with \(service.name)...")
