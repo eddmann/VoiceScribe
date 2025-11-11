@@ -11,6 +11,10 @@ final class OpenAIService: TranscriptionService {
     let requiresAPIKey = true
 
     private let apiEndpoint = "https://api.openai.com/v1/audio/transcriptions"
+    private let chatEndpoint = "https://api.openai.com/v1/chat/completions"
+
+    /// Optional progress callback for transcription operations
+    var progressCallback: (@MainActor (String) -> Void)?
 
     /// Available OpenAI transcription models
     enum Model: String, CaseIterable, Codable {
@@ -47,6 +51,11 @@ final class OpenAIService: TranscriptionService {
             return model
         }
         return .whisper1 // Default
+    }
+
+    /// Check if post-processing is enabled
+    private var isPostProcessingEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "openai_post_process_enabled")
     }
 
     /// Reload the model selection from UserDefaults
@@ -144,7 +153,23 @@ final class OpenAIService: TranscriptionService {
                 // Success
                 let result = try JSONDecoder().decode(OpenAIResponse.self, from: data)
                 logger.info("Transcription successful: \(result.text.count) chars")
-                return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                var transcribedText = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                // Apply post-processing if enabled
+                if isPostProcessingEnabled {
+                    logger.info("Post-processing enabled, applying AI enhancement...")
+                    progressCallback?("Enhancing with AI post-processing...")
+                    do {
+                        transcribedText = try await postProcess(text: transcribedText, apiKey: apiKey)
+                        logger.info("Post-processing successful")
+                    } catch {
+                        // Log error but don't fail the transcription
+                        logger.error("Post-processing failed: \(error.localizedDescription)")
+                        // Continue with original transcription
+                    }
+                }
+
+                return transcribedText
 
             case 401:
                 throw VoiceScribeError.invalidAPIKey(service: name)
@@ -179,11 +204,108 @@ final class OpenAIService: TranscriptionService {
             throw VoiceScribeError.networkError(underlying: error.localizedDescription)
         }
     }
+
+    // MARK: - Post-Processing
+
+    /// Post-process transcribed text using GPT to improve formatting and clarity
+    private func postProcess(text: String, apiKey: String) async throws -> String {
+        logger.info("Starting post-processing with GPT")
+
+        // Create request
+        var request = URLRequest(url: URL(string: chatEndpoint)!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Build request body
+        let systemPrompt = """
+        You are a transcription post-processor. Your task is to improve the given transcription by:
+        - Adding proper punctuation and capitalization
+        - Fixing obvious transcription errors
+        - Adding paragraph breaks where appropriate
+        - Maintaining the original meaning and content
+
+        Return ONLY the cleaned text without any explanations, comments, or additional content.
+        """
+
+        let requestBody: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": text]
+            ],
+            "temperature": 0.3,
+            "max_tokens": 4000
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        } catch {
+            throw VoiceScribeError.postProcessingFailed(reason: "Failed to encode request")
+        }
+
+        // Perform request
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        let session = URLSession(configuration: config)
+
+        do {
+            let (data, response) = try await session.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw VoiceScribeError.postProcessingFailed(reason: "Invalid response type")
+            }
+
+            logger.info("Post-processing response: \(httpResponse.statusCode)")
+
+            switch httpResponse.statusCode {
+            case 200:
+                let result = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+                guard let content = result.choices.first?.message.content else {
+                    throw VoiceScribeError.postProcessingFailed(reason: "No content in response")
+                }
+                return content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+            case 401:
+                throw VoiceScribeError.invalidAPIKey(service: name)
+
+            default:
+                if let errorResponse = try? JSONDecoder().decode(
+                    OpenAIErrorResponse.self,
+                    from: data
+                ) {
+                    throw VoiceScribeError.postProcessingFailed(reason: errorResponse.error.message)
+                } else {
+                    throw VoiceScribeError.postProcessingFailed(
+                        reason: "HTTP \(httpResponse.statusCode)"
+                    )
+                }
+            }
+        } catch let error as VoiceScribeError {
+            throw error
+        } catch {
+            logger.error("Post-processing network error: \(error.localizedDescription)")
+            throw VoiceScribeError.postProcessingFailed(reason: error.localizedDescription)
+        }
+    }
 }
 
 // MARK: - Response Models
 private struct OpenAIResponse: Decodable {
     let text: String
+}
+
+private struct ChatCompletionResponse: Decodable {
+    let choices: [Choice]
+
+    struct Choice: Decodable {
+        let message: Message
+    }
+
+    struct Message: Decodable {
+        let content: String
+    }
 }
 
 private struct OpenAIErrorResponse: Decodable {

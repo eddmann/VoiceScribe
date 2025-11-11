@@ -9,10 +9,15 @@ struct SettingsView: View {
     @State private var smartPasteEnabled: Bool = true
     @State private var openAIKey: String = ""
     @State private var selectedOpenAIModel: OpenAIService.Model = .whisper1
-    @State private var selectedWhisperModel: WhisperKitService.Model = .tiny
+    @State private var selectedWhisperModel: WhisperKitService.Model = .base
+    @State private var selectedMLXModel: MLXService.Model = .qwen25_0_5b
+    @State private var openAIPostProcessEnabled: Bool = false
+    @State private var whisperKitPostProcessEnabled: Bool = false
     @State private var showingAPIKeySaved = false
     @State private var downloadingModels: Set<WhisperKitService.Model> = []
     @State private var downloadedModels: [WhisperKitService.Model] = []
+    @State private var downloadingMLXModels: Set<MLXService.Model> = []
+    @State private var downloadedMLXModels: [MLXService.Model] = []
     @State private var downloadError: String?
     @State private var hasAccessibilityPermission = false
     @State private var permissionCheckTask: Task<Void, Never>?
@@ -25,49 +30,42 @@ struct SettingsView: View {
     }
 
     var body: some View {
+        contentView
+            .onAppear {
+                loadSettings()
+                checkPermissionStatus()
+                startPermissionCheckTimer()
+            }
+            .onDisappear {
+                permissionCheckTask?.cancel()
+                permissionCheckTask = nil
+            }
+    }
+
+    private var contentView: some View {
+        mainTabView
+            .modifier(ServiceSettingsModifier(
+                selectedService: $selectedService,
+                selectedOpenAIModel: $selectedOpenAIModel,
+                selectedWhisperModel: $selectedWhisperModel,
+                selectedMLXModel: $selectedMLXModel,
+                smartPasteEnabled: $smartPasteEnabled,
+                openAIPostProcessEnabled: $openAIPostProcessEnabled,
+                whisperKitPostProcessEnabled: $whisperKitPostProcessEnabled,
+                appState: appState
+            ))
+    }
+
+    private var mainTabView: some View {
         TabView {
-            // Transcription Service Tab
             transcriptionServiceTab
-                .tabItem {
-                    Label("Service", systemImage: "waveform")
-                }
-
-            // Smart Paste & Shortcuts Tab
+                .tabItem { Label("Service", systemImage: "waveform") }
             smartPasteTab
-                .tabItem {
-                    Label("Preferences", systemImage: "slider.horizontal.3")
-                }
-
-            // About Tab
+                .tabItem { Label("Preferences", systemImage: "slider.horizontal.3") }
             aboutTab
-                .tabItem {
-                    Label("About", systemImage: "info.circle")
-                }
+                .tabItem { Label("About", systemImage: "info.circle") }
         }
         .frame(width: 600, height: 600)
-        .onAppear {
-            loadSettings()
-            checkPermissionStatus()
-            // Start checking permission status periodically
-            startPermissionCheckTimer()
-        }
-        .onDisappear {
-            // Immediately cancel the task to prevent accessing deallocated memory
-            permissionCheckTask?.cancel()
-            permissionCheckTask = nil
-        }
-        .onChange(of: selectedService) { _, newValue in
-            appState.selectedServiceIdentifier = newValue
-        }
-        .onChange(of: selectedOpenAIModel) { _, newValue in
-            UserDefaults.standard.set(newValue.rawValue, forKey: "openai_model")
-        }
-        .onChange(of: selectedWhisperModel) { _, newValue in
-            UserDefaults.standard.set(newValue.rawValue, forKey: "whisperkit_model")
-        }
-        .onChange(of: smartPasteEnabled) { _, newValue in
-            appState.smartPasteEnabled = newValue
-        }
     }
 
     // MARK: - Tab Views
@@ -278,6 +276,45 @@ struct SettingsView: View {
             .padding()
             .background(.quaternary.opacity(0.3))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // Post-Processing
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Enable AI Post-Processing", isOn: $openAIPostProcessEnabled)
+                    .font(.subheadline)
+
+                Text("Uses GPT-4o-mini AI to improve transcription formatting, punctuation, and clarity.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 6) {
+                    Image(systemName: "network")
+                        .foregroundStyle(.orange)
+                    Text("Requires additional API call (~$0.01 per transcription)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, 4)
+
+                if openAIPostProcessEnabled {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "cloud.fill")
+                                .foregroundStyle(.blue)
+                            Text("Cloud-Based Processing")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.blue)
+                        }
+                        Text("Audio is transcribed by OpenAI, then enhanced by GPT-4o-mini. Transcription text sent to OpenAI servers.")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.top, 4)
+                }
+            }
+            .padding()
+            .background(.quaternary.opacity(0.3))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
 
@@ -288,7 +325,8 @@ struct SettingsView: View {
             Text("WhisperKit Configuration")
                 .font(.headline)
 
-            VStack(alignment: .leading, spacing: 8) {
+            // Model Configuration (merged: Model Size + Downloaded Models)
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Model Size")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -309,13 +347,9 @@ struct SettingsView: View {
                 Text("Larger models provide better accuracy but use more memory.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
 
-            // Model Downloads
-            VStack(alignment: .leading, spacing: 12) {
+                Divider()
+
                 Text("Downloaded Models")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -337,6 +371,9 @@ struct SettingsView: View {
             .padding()
             .background(.quaternary.opacity(0.3))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // Post-Processing
+            mlxPostProcessingSection
         }
     }
 
@@ -375,6 +412,136 @@ struct SettingsView: View {
             } else {
                 Button("Download") {
                     downloadModel(model)
+                }
+                .font(.caption)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    // MARK: - MLX Post-Processing Section
+
+    private var mlxPostProcessingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Toggle("Enable AI Post-Processing", isOn: $whisperKitPostProcessEnabled)
+                .font(.subheadline)
+
+            Text("Improves transcription formatting and punctuation using a local AI model (LLM).")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            // Show requirement notice
+            HStack(spacing: 6) {
+                Image(systemName: "info.circle.fill")
+                    .foregroundStyle(.blue)
+                Text("Requires Apple Silicon (M1/M2/M3/M4) and a downloaded model")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, 4)
+
+            if whisperKitPostProcessEnabled {
+                Divider()
+                mlxModelSelectionView
+                Divider()
+                mlxDownloadedModelsView
+
+                Divider()
+
+                // Important notice
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .foregroundStyle(.green)
+                        Text("100% Private & Offline")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.green)
+                    }
+                    Text("All AI processing happens on your Mac. No data sent to any server.")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private var mlxModelSelectionView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Local AI Model")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Picker("Model", selection: $selectedMLXModel) {
+                ForEach(MLXService.Model.allCases, id: \.self) { model in
+                    VStack(alignment: .leading) {
+                        Text(model.displayName)
+                        Text(model.approximateSize)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .tag(model)
+                }
+            }
+            .pickerStyle(.menu)
+
+            Text(selectedMLXModel.description)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+    }
+
+    private var mlxDownloadedModelsView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Downloaded Models")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            ForEach(MLXService.Model.allCases, id: \.self) { model in
+                mlxModelRow(for: model)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func mlxModelRow(for model: MLXService.Model) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(model.displayName)
+                    .font(.subheadline)
+                Text(model.approximateSize)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if downloadingMLXModels.contains(model) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Downloading...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if downloadedMLXModels.contains(model) {
+                Label("Downloaded", systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+
+                Button(action: {
+                    deleteMLXModel(model)
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.borderless)
+                .help("Delete model")
+            } else {
+                Button("Download") {
+                    downloadMLXModel(model)
                 }
                 .font(.caption)
             }
@@ -530,12 +697,27 @@ struct SettingsView: View {
         // Load smart paste preference
         smartPasteEnabled = appState.smartPasteEnabled
 
+        // Load saved MLX model preference
+        if let savedModel = UserDefaults.standard.string(forKey: "mlx_model"),
+           let model = MLXService.Model(rawValue: savedModel) {
+            selectedMLXModel = model
+        }
+
+        // Load post-processing preferences
+        openAIPostProcessEnabled = UserDefaults.standard.bool(forKey: "openai_post_process_enabled")
+        whisperKitPostProcessEnabled = UserDefaults.standard.bool(forKey: "whisperkit_post_process_enabled")
+
         // Check which models are downloaded
         refreshDownloadedModels()
+        refreshDownloadedMLXModels()
     }
 
     private func refreshDownloadedModels() {
         downloadedModels = WhisperKitService.getDownloadedModels()
+    }
+
+    private func refreshDownloadedMLXModels() {
+        downloadedMLXModels = MLXService.getDownloadedModels()
     }
 
     private func downloadModel(_ model: WhisperKitService.Model) {
@@ -565,6 +747,39 @@ struct SettingsView: View {
         do {
             try WhisperKitService.deleteModel(model)
             refreshDownloadedModels()
+            downloadError = nil
+        } catch {
+            downloadError = error.localizedDescription
+        }
+    }
+
+    private func downloadMLXModel(_ model: MLXService.Model) {
+        downloadingMLXModels.insert(model)
+        downloadError = nil
+
+        Task {
+            do {
+                try await MLXService.shared.downloadModel(model) { progress in
+                    // Could update UI with progress here if needed
+                }
+
+                await MainActor.run {
+                    downloadingMLXModels.remove(model)
+                    refreshDownloadedMLXModels()
+                }
+            } catch {
+                await MainActor.run {
+                    downloadingMLXModels.remove(model)
+                    downloadError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func deleteMLXModel(_ model: MLXService.Model) {
+        do {
+            try MLXService.shared.deleteModel(model)
+            refreshDownloadedMLXModels()
             downloadError = nil
         } catch {
             downloadError = error.localizedDescription
@@ -626,4 +841,44 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView(appState: AppState())
+}
+
+// MARK: - View Modifiers
+
+struct ServiceSettingsModifier: ViewModifier {
+    @Binding var selectedService: String
+    @Binding var selectedOpenAIModel: OpenAIService.Model
+    @Binding var selectedWhisperModel: WhisperKitService.Model
+    @Binding var selectedMLXModel: MLXService.Model
+    @Binding var smartPasteEnabled: Bool
+    @Binding var openAIPostProcessEnabled: Bool
+    @Binding var whisperKitPostProcessEnabled: Bool
+    let appState: AppState
+
+    func body(content: Content) -> some View {
+        Group {
+            content
+                .onChange(of: selectedService) { _, new in
+                    appState.selectedServiceIdentifier = new
+                }
+                .onChange(of: selectedOpenAIModel) { _, new in
+                    UserDefaults.standard.set(new.rawValue, forKey: "openai_model")
+                }
+                .onChange(of: selectedWhisperModel) { _, new in
+                    UserDefaults.standard.set(new.rawValue, forKey: "whisperkit_model")
+                }
+        }
+        .onChange(of: selectedMLXModel) { _, new in
+            UserDefaults.standard.set(new.rawValue, forKey: "mlx_model")
+        }
+        .onChange(of: smartPasteEnabled) { _, new in
+            appState.smartPasteEnabled = new
+        }
+        .onChange(of: openAIPostProcessEnabled) { _, new in
+            UserDefaults.standard.set(new, forKey: "openai_post_process_enabled")
+        }
+        .onChange(of: whisperKitPostProcessEnabled) { _, new in
+            UserDefaults.standard.set(new, forKey: "whisperkit_post_process_enabled")
+        }
+    }
 }

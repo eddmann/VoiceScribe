@@ -23,6 +23,9 @@ enum VoiceScribeError: LocalizedError, Sendable {
     case modelNotFound(modelName: String)
     case modelDownloadFailed(modelName: String, reason: String)
 
+    // Post-processing errors
+    case postProcessingFailed(reason: String)
+
     var errorDescription: String? {
         switch self {
         case .microphonePermissionDenied:
@@ -51,6 +54,8 @@ enum VoiceScribeError: LocalizedError, Sendable {
             return "Model '\(modelName)' Not Downloaded"
         case .modelDownloadFailed(let modelName, let reason):
             return "Failed to Download '\(modelName)': \(reason)"
+        case .postProcessingFailed(let reason):
+            return "Post-Processing Failed: \(reason)"
         }
     }
 
@@ -76,6 +81,8 @@ enum VoiceScribeError: LocalizedError, Sendable {
             return "Download the model from Settings → Local Models to use offline transcription."
         case .modelDownloadFailed:
             return "Check your internet connection and try downloading the model again."
+        case .postProcessingFailed:
+            return "The transcription was successful, but post-processing encountered an error. The original transcription is available."
         default:
             return nil
         }
