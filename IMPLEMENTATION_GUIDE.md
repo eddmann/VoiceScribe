@@ -57,7 +57,8 @@ VoiceScribe follows **Clean Architecture** principles with clear separation betw
 │                 Services Layer                             │
 │  - AudioRecorder (AVFoundation)                           │
 │  - WhisperKitService (CoreML transcription)               │
-│  - OpenAIService (API transcription)                      │
+│  - OpenAIService (API transcription & enhancement)        │
+│  - MLXService (Local AI enhancement)                      │
 │  - PasteSimulator (CGEvent simulation)                    │
 │  - AppFocusManager (NSWorkspace)                          │
 └────────────────────┬───────────────────────────────────────┘
@@ -103,6 +104,10 @@ VoiceScribe follows **Clean Architecture** principles with clear separation betw
 |---------|---------|------------|
 | **WhisperKit** | Local speech-to-text | [argmaxinc/WhisperKit](https://github.com/argmaxinc/WhisperKit) |
 | **KeyboardShortcuts** | Global hotkey registration | [sindresorhus/KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) |
+| **MLX** | Apple Silicon ML framework | [ml-explore/mlx-swift](https://github.com/ml-explore/mlx-swift) |
+| **MLXRandom** | Random number generation for MLX | [ml-explore/mlx-swift](https://github.com/ml-explore/mlx-swift) |
+| **MLXLLM** | Large language model support | [ml-explore/mlx-swift-examples](https://github.com/ml-explore/mlx-swift-examples) |
+| **MLXLMCommon** | Common LLM utilities | [ml-explore/mlx-swift-examples](https://github.com/ml-explore/mlx-swift-examples) |
 
 ### Swift Language Features
 
@@ -324,15 +329,15 @@ final class AudioRecorder: NSObject {
 
 | Model | Size | Performance | Accuracy | Use Case |
 |-------|------|-------------|----------|----------|
-| Tiny | 40 MB | Fastest | Lowest | Quick notes |
-| Base | 150 MB | Fast | Good | General use |
-| Small | 500 MB | Moderate | Better | Quality transcriptions |
-| Medium | 1.5 GB | Slow | Best | Maximum accuracy |
+| **Base (Fast)** | 150 MB | Fast | Good | General use (default) |
+| **Small (Balanced)** | 500 MB | Moderate | Better | Quality transcriptions |
+| **Medium (Quality)** | 1.5 GB | Slow | Best | Maximum accuracy |
+
+**Note**: The Tiny model has been removed from VoiceScribe as Base provides a better balance of speed and accuracy. Base is now the default model.
 
 **Model Storage**:
 ```
 ~/Documents/huggingface/models/argmaxinc/whisperkit-coreml/
-├── openai_whisper-tiny/
 ├── openai_whisper-base/
 ├── openai_whisper-small/
 └── openai_whisper-medium/
@@ -374,9 +379,28 @@ final class AudioRecorder: NSObject {
 
        // Transcribe
        let results = try await whisperKit!.transcribe(audioPath: audioURL.path)
-       return results.map { $0.text }.joined(separator: " ")
+       let rawText = results.map { $0.text }.joined(separator: " ")
+
+       // Post-process if enabled (added in v1.0)
+       let postProcessEnabled = UserDefaults.standard.bool(forKey: "whisperkit_post_process_enabled")
+       if postProcessEnabled {
+           progressCallback?("Enhancing with AI...")
+           return try await mlxService.postProcess(text: rawText) { progress in
+               progressCallback?(progress)
+           }
+       }
+
+       return rawText
    }
    ```
+
+5. **AI Post-Processing Integration** (New in v1.0):
+   - Optional local AI enhancement using MLX models
+   - Improves punctuation, capitalization, formatting
+   - Fully privacy-preserving (on-device only)
+   - Toggle in Settings per service
+   - Graceful fallback to raw text if enhancement fails
+   - See MLXService section for details
 
 **Apple Silicon Requirement**:
 - CoreML optimizations require Apple Neural Engine
@@ -393,15 +417,25 @@ final class AudioRecorder: NSObject {
 
 ### 5. OpenAIService.swift
 
-**Purpose**: Cloud-based transcription using OpenAI Whisper API
+**Purpose**: Cloud-based transcription and AI enhancement using OpenAI API
+
+**Service Name**: "OpenAI Transcription" (renamed from "OpenAI Whisper" in v1.0)
+
+**Model Options**:
+
+| Model | API Name | Purpose | Cost | Performance |
+|-------|----------|---------|------|-------------|
+| **Whisper V2** | `whisper-1` | Standard transcription | $0.006/min | Fast, accurate (default) |
+| **GPT-4o Transcribe** | `gpt-4o-transcribe` | Premium transcription | $0.024/min | Highest accuracy |
+| **GPT-4o Mini Transcribe** | `gpt-4o-mini-transcribe` | Budget transcription | $0.0006/min | Cost-effective |
 
 **API Configuration**:
-- Endpoint: `https://api.openai.com/v1/audio/transcriptions`
-- Model: `whisper-1`
-- Format: `multipart/form-data`
-- Authentication: Bearer token
+- **Transcription Endpoint**: `https://api.openai.com/v1/audio/transcriptions`
+- **Post-Processing Endpoint**: `https://api.openai.com/v1/chat/completions` (new in v1.0)
+- **Format**: `multipart/form-data` (transcription), `application/json` (post-processing)
+- **Authentication**: Bearer token (stored in Keychain)
 
-**Implementation**:
+**Transcription Implementation**:
 
 ```swift
 func transcribe(audioURL: URL) async throws -> String {
@@ -409,6 +443,10 @@ func transcribe(audioURL: URL) async throws -> String {
     guard let apiKey = KeychainManager.retrieve(key: "openai-api-key") else {
         throw VoiceScribeError.apiKeyNotFound
     }
+
+    // Get selected model from UserDefaults
+    let modelRawValue = UserDefaults.standard.string(forKey: "openai_model") ?? "whisper-1"
+    let selectedModel = Model(rawValue: modelRawValue) ?? .whisper1
 
     // Create multipart request
     var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
@@ -427,7 +465,7 @@ func transcribe(audioURL: URL) async throws -> String {
     body.append("\r\n")
     body.append("--\(boundary)\r\n")
     body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n")
-    body.append("whisper-1\r\n")
+    body.append("\(selectedModel.rawValue)\r\n")
     body.append("--\(boundary)--\r\n")
 
     request.httpBody = body
@@ -437,9 +475,68 @@ func transcribe(audioURL: URL) async throws -> String {
 
     // Parse response
     let json = try JSONDecoder().decode(TranscriptionResponse.self, from: data)
-    return json.text
+    let rawText = json.text
+
+    // Post-process if enabled (added in v1.0)
+    let postProcessEnabled = UserDefaults.standard.bool(forKey: "openai_post_process_enabled")
+    if postProcessEnabled {
+        progressCallback?("Enhancing with AI...")
+        return try await postProcess(text: rawText)
+    }
+
+    return rawText
 }
 ```
+
+**Post-Processing Implementation** (New in v1.0):
+
+```swift
+func postProcess(text: String) async throws -> String {
+    guard let apiKey = KeychainManager.retrieve(key: "openai-api-key") else {
+        throw VoiceScribeError.apiKeyNotFound
+    }
+
+    // Create chat completion request for enhancement
+    var request = URLRequest(url: URL(string: "https://api.openai.com/v1/chat/completions")!)
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+    // Build enhancement prompt
+    let payload: [String: Any] = [
+        "model": "gpt-4o-mini",
+        "messages": [
+            [
+                "role": "system",
+                "content": "You are a text formatting assistant. Add proper punctuation, capitalization, and formatting. Do not change the words."
+            ],
+            [
+                "role": "user",
+                "content": "Format this transcription:\n\n\(text)"
+            ]
+        ],
+        "temperature": 0.3
+    ]
+
+    request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+
+    // Send request
+    let (data, _) = try await URLSession.shared.data(for: request)
+    let response = try JSONDecoder().decode(ChatResponse.self, from: data)
+
+    return response.choices.first?.message.content ?? text
+}
+```
+
+**Cost Analysis** (New in v1.0):
+
+| Operation | Model | Typical Cost |
+|-----------|-------|--------------|
+| Transcription only | whisper-1 | $0.006/min |
+| Transcription + Post-processing | whisper-1 + gpt-4o-mini | ~$0.01/min total |
+| Premium transcription | gpt-4o-transcribe | $0.024/min |
+
+Example: A 5-minute recording with post-processing costs approximately $0.05.
 
 **Error Handling**:
 - Invalid API key (401)
@@ -453,12 +550,16 @@ func transcribe(audioURL: URL) async throws -> String {
 - No model download required
 - Always latest Whisper version
 - High accuracy
+- **Multiple model options** for different needs
+- **Optional AI post-processing** for perfect formatting
+- Cost-effective option with gpt-4o-mini-transcribe
 
 **Disadvantages**:
 - Requires internet connection
-- Audio sent to OpenAI servers
-- API costs per request
-- Privacy considerations
+- Audio sent to OpenAI servers (transcription)
+- **Text sent to OpenAI servers** (post-processing)
+- API costs per request (~$0.006-0.024/min transcription, +~$0.004/min post-processing)
+- Privacy considerations (suitable for non-sensitive content)
 
 ---
 
@@ -592,6 +693,180 @@ static let accessibility = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
 
 ---
 
+### 8. MLXService.swift
+
+**Purpose**: On-device AI post-processing for transcriptions using local LLM models
+
+**Overview**:
+MLXService provides privacy-focused text enhancement using local language models through the MLX framework. It improves punctuation, capitalization, and formatting of raw transcriptions without sending data to external servers.
+
+**Model Architecture**:
+
+| Model | Size | Performance | Quality | Use Case |
+|-------|------|-------------|---------|----------|
+| **Qwen 2.5 0.5B** | ~300 MB | Fastest | Good | Quick enhancement |
+| **Llama 3.2 3B** | ~1.8 GB | Balanced | Better | General use |
+| **Phi-3.5 Mini** | ~2.4 GB | Slower | Best | Maximum quality |
+
+**Model Storage**:
+```
+~/Library/Containers/com.eddmann.VoiceScribe/Data/Library/Caches/models/
+├── mlx-community/
+│   ├── Qwen2.5-0.5B-Instruct-4bit/
+│   ├── Llama-3.2-3B-Instruct-4bit/
+│   └── Phi-3.5-mini-instruct-4bit/
+```
+
+**Key Features**:
+
+1. **Privacy-First**:
+   - 100% on-device processing
+   - No network requests
+   - No data leaves the Mac
+   - Ideal for sensitive content
+
+2. **Apple Silicon Only**:
+   - Requires M1/M2/M3/M4 chip
+   - Uses Metal acceleration
+   - Intel Macs not supported
+
+3. **Model Management**:
+   - Automatic download on first use
+   - Progress callbacks for UI
+   - Model switching
+   - Delete unused models
+
+4. **Post-Processing Algorithm**:
+   ```swift
+   func postProcess(text: String, progressCallback: @escaping (String) -> Void) async throws -> String {
+       // 1. Check if model is downloaded
+       if !isModelDownloaded(currentModel) {
+           progressCallback("Downloading \(currentModel.displayName)...")
+           try await downloadModel(currentModel)
+       }
+
+       // 2. Load model if needed
+       if llm == nil {
+           progressCallback("Loading AI model...")
+           try await loadModel(currentModel)
+       }
+
+       // 3. Generate enhancement prompt
+       let prompt = """
+       Improve the following transcription by adding proper punctuation, capitalization, and formatting.
+       Do not change the words, only improve formatting.
+
+       Transcription: \(text)
+
+       Improved version:
+       """
+
+       // 4. Run inference
+       progressCallback("Enhancing with AI...")
+       let enhanced = try await llm.generate(prompt: prompt, maxTokens: text.count * 2)
+
+       // 5. Extract and clean result
+       return cleanEnhancedText(enhanced)
+   }
+   ```
+
+**Implementation Details**:
+
+```swift
+@MainActor
+final class MLXService {
+    enum Model: String, CaseIterable {
+        case qwen = "mlx-community/Qwen2.5-0.5B-Instruct-4bit"
+        case llama = "mlx-community/Llama-3.2-3B-Instruct-4bit"
+        case phi = "mlx-community/Phi-3.5-mini-instruct-4bit"
+
+        var displayName: String {
+            switch self {
+            case .qwen: return "Qwen 2.5 0.5B (Fast)"
+            case .llama: return "Llama 3.2 3B (Balanced)"
+            case .phi: return "Phi-3.5 Mini (Quality)"
+            }
+        }
+
+        var estimatedSize: Int64 {
+            switch self {
+            case .qwen: return 300_000_000      // ~300 MB
+            case .llama: return 1_800_000_000   // ~1.8 GB
+            case .phi: return 2_400_000_000     // ~2.4 GB
+            }
+        }
+    }
+
+    private var llm: LLMModel?
+    private var currentModel: Model
+
+    func downloadModel(_ model: Model) async throws {
+        // Uses MLX Hub to download from Hugging Face
+        let config = ModelConfiguration(id: model.rawValue)
+        try await MLXHub.download(config: config)
+    }
+
+    func loadModel(_ model: Model) async throws {
+        let config = ModelConfiguration(id: model.rawValue)
+        llm = try await LLMModel.load(config: config)
+        currentModel = model
+    }
+
+    func isModelDownloaded(_ model: Model) -> Bool {
+        let modelPath = cacheDirectory.appendingPathComponent(model.rawValue)
+        return FileManager.default.fileExists(atPath: modelPath.path)
+    }
+}
+```
+
+**Integration with WhisperKit**:
+When post-processing is enabled for WhisperKit:
+```swift
+// In WhisperKitService.swift
+func transcribe(audioURL: URL) async throws -> String {
+    // 1. Perform transcription
+    let rawText = try await whisperKit.transcribe(audioPath: audioURL.path)
+
+    // 2. Check if post-processing enabled
+    let postProcessEnabled = UserDefaults.standard.bool(forKey: "whisperkit_post_process_enabled")
+
+    if postProcessEnabled {
+        // 3. Enhance with MLX
+        return try await mlxService.postProcess(text: rawText) { progress in
+            progressCallback?(progress)
+        }
+    }
+
+    return rawText
+}
+```
+
+**Error Handling**:
+- **Model Download Failure**: Network issues, disk space
+- **Model Load Failure**: Corrupted files, incompatible version
+- **Inference Failure**: Out of memory, model error
+- **Graceful Fallback**: Returns original text if enhancement fails
+
+**Performance Characteristics**:
+
+| Model | Load Time | Enhancement Time (100 words) | Memory Usage |
+|-------|-----------|------------------------------|--------------|
+| Qwen 2.5 0.5B | ~2s | ~3s | ~800 MB |
+| Llama 3.2 3B | ~4s | ~8s | ~4 GB |
+| Phi-3.5 Mini | ~5s | ~12s | ~5 GB |
+
+**Privacy Benefits**:
+- No API keys required
+- No internet connection needed (after download)
+- No data sent to external servers
+- Ideal for:
+  - Lawyers with client confidentiality
+  - Doctors with patient privacy (HIPAA)
+  - Journalists with source protection
+  - Anyone with sensitive information
+
+---
+
 ## Data Layer
 
 ### SwiftData Model: TranscriptionRecord
@@ -603,19 +878,27 @@ static let accessibility = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
 final class TranscriptionRecord {
     @Attribute(.unique) var id: UUID
     var text: String
-    var date: Date
-    var service: String
-    var duration: TimeInterval?
+    var timestamp: Date  // Changed from 'date' in v1.0
+    var serviceUsed: String  // Changed from 'service' in v1.0
+    var audioDuration: TimeInterval?  // Changed from 'duration' in v1.0
+    var audioFilePath: String?  // New in v1.0 (optional, for future playback)
 
-    init(text: String, service: String, duration: TimeInterval? = nil) {
+    init(text: String, serviceUsed: String, audioDuration: TimeInterval? = nil) {
         self.id = UUID()
         self.text = text
-        self.date = Date()
-        self.service = service
-        self.duration = duration
+        self.timestamp = Date()
+        self.serviceUsed = serviceUsed
+        self.audioDuration = audioDuration
+        self.audioFilePath = nil
     }
 }
 ```
+
+**Field Changes in v1.0**:
+- `date` → `timestamp`: More descriptive name
+- `service` → `serviceUsed`: Clarifies this is the service that was used
+- `duration` → `audioDuration`: Distinguishes from processing duration
+- Added `audioFilePath`: For future audio playback feature
 
 **Persistence**:
 - Automatic SQLite backing store
@@ -626,13 +909,13 @@ final class TranscriptionRecord {
 
 ```swift
 // Fetch all records, newest first
-@Query(sort: \TranscriptionRecord.date, order: .reverse)
+@Query(sort: \TranscriptionRecord.timestamp, order: .reverse)
 var records: [TranscriptionRecord]
 
 // Fetch records for specific service
 @Query(filter: #Predicate<TranscriptionRecord> { record in
-    record.service == "whisperkit"
-}, sort: \TranscriptionRecord.date, order: .reverse)
+    record.serviceUsed == "whisperkit"
+}, sort: \TranscriptionRecord.timestamp, order: .reverse)
 var whisperKitRecords: [TranscriptionRecord]
 
 // Search by text content
@@ -640,14 +923,54 @@ var whisperKitRecords: [TranscriptionRecord]
     record.text.localizedStandardContains(searchText)
 })
 var searchResults: [TranscriptionRecord]
+
+// Limit to most recent N records (for history limit feature)
+@Query(sort: \TranscriptionRecord.timestamp, order: .reverse)
+var limitedRecords: [TranscriptionRecord]
+// In view: limitedRecords.prefix(historyLimit)
 ```
 
 **Future Enhancements**:
 - Add `appBundleID` to track source app
-- Add `audioURL` for playback
 - Add tags for organization
 - Add favorites/starred
 - Export functionality
+
+---
+
+### Date Extension: RelativeTime
+
+**Purpose**: Human-readable timestamp formatting for History UI
+
+**Implementation** (New in v1.0):
+
+```swift
+extension Date {
+    var relativeTime: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: self, relativeTo: Date())
+    }
+}
+```
+
+**Usage**:
+```swift
+// In HistoryView
+Text(record.timestamp.relativeTime)
+// Output examples:
+// - "2 minutes ago"
+// - "1 hour ago"
+// - "Yesterday"
+// - "Last week"
+// - "Jan 15, 2025" (for older dates)
+```
+
+**Benefits**:
+- More user-friendly than absolute timestamps
+- Automatically updates as time passes
+- Localized to user's language
+- Standard iOS/macOS formatting
 
 ---
 
@@ -838,6 +1161,199 @@ logger.info("API Key: \(apiKey)")  // ❌ NO - exposes secrets
 
 ---
 
+### 4. HistoryView
+
+**Purpose**: Full-window interface for viewing and managing transcription history
+
+**Layout** (New in v1.0):
+
+```
+┌──────────────────────────────────────────────────────┐
+│  History                                    ⌘H       │
+│  ────────────────────────────────────────────────    │
+│                                                      │
+│  Search: [_________________________]  🔍            │
+│                                                      │
+│  History Limit: [ 10 ▼ 25 ▼ 50 ▼ 100 ▼ ]          │
+│                                                      │
+│  ┌────────────────────────────────────────────┐     │
+│  │ 🟢 WhisperKit    "Hello world..."    2m ago│     │
+│  │ Duration: 5.2s                              │     │
+│  │ [Click to copy again]                       │     │
+│  ├────────────────────────────────────────────┤     │
+│  │ 🔵 OpenAI       "Testing transcr..." 1h ago│     │
+│  │ Duration: 3.1s                              │     │
+│  │ [Click to copy again]                       │     │
+│  └────────────────────────────────────────────┘     │
+│                                                      │
+│  Showing 25 of 147 transcriptions                   │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+```
+
+**Key Features**:
+
+1. **Service Badges**:
+   - WhisperKit: Green circle 🟢
+   - OpenAI: Blue circle 🔵
+   - Color-coded for quick identification
+
+2. **Configurable Limits**:
+   - Options: 10, 25, 50, 100 records
+   - Saves preference to UserDefaults
+   - Automatically deletes oldest records beyond limit
+   - Prevents database bloat
+
+3. **Click-to-Copy**:
+   - Click anywhere on a row to copy text again
+   - Haptic feedback on copy (if available)
+   - Toast notification: "Copied to clipboard"
+
+4. **Search Functionality**:
+   - Real-time text search
+   - Searches through all transcription text
+   - Updates as user types
+   - Case-insensitive
+
+5. **Empty State**:
+   ```
+   ┌──────────────────────────────┐
+   │                              │
+   │       🎙️                     │
+   │                              │
+   │   No transcriptions yet      │
+   │                              │
+   │   Press ⌥⇧␣ to start        │
+   │   recording                  │
+   │                              │
+   └──────────────────────────────┘
+   ```
+
+**Implementation**:
+
+```swift
+struct HistoryView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \TranscriptionRecord.timestamp, order: .reverse)
+    private var allRecords: [TranscriptionRecord]
+
+    @AppStorage("history_limit") private var historyLimit: Int = 25
+    @State private var searchText = ""
+
+    var filteredRecords: [TranscriptionRecord] {
+        let records = searchText.isEmpty ? allRecords :
+            allRecords.filter { $0.text.localizedStandardContains(searchText) }
+        return Array(records.prefix(historyLimit))
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Search bar
+            TextField("Search transcriptions...", text: $searchText)
+                .textFieldStyle(.roundedBorder)
+
+            // History limit picker
+            Picker("History Limit", selection: $historyLimit) {
+                Text("10").tag(10)
+                Text("25").tag(25)
+                Text("50").tag(50)
+                Text("100").tag(100)
+            }
+            .pickerStyle(.segmented)
+
+            // Records list
+            if filteredRecords.isEmpty {
+                EmptyStateView()
+            } else {
+                List(filteredRecords) { record in
+                    TranscriptionRow(record: record)
+                        .onTapGesture {
+                            copyToClipboard(record.text)
+                        }
+                }
+            }
+
+            // Footer
+            Text("Showing \(filteredRecords.count) of \(allRecords.count) transcriptions")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .frame(width: 600, height: 500)
+        .onChange(of: historyLimit) {
+            cleanupOldRecords()
+        }
+    }
+
+    func cleanupOldRecords() {
+        // Delete records beyond limit
+        let recordsToDelete = Array(allRecords.dropFirst(historyLimit))
+        for record in recordsToDelete {
+            modelContext.delete(record)
+        }
+        try? modelContext.save()
+    }
+}
+
+struct TranscriptionRow: View {
+    let record: TranscriptionRecord
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                // Service badge
+                Circle()
+                    .fill(serviceBadgeColor)
+                    .frame(width: 12, height: 12)
+
+                Text(record.serviceUsed.capitalized)
+                    .font(.headline)
+
+                Spacer()
+
+                Text(record.timestamp.relativeTime)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            // Truncated text
+            Text(record.text.prefix(100) + (record.text.count > 100 ? "..." : ""))
+                .lineLimit(2)
+
+            // Duration
+            if let duration = record.audioDuration {
+                Text("Duration: \(String(format: "%.1f", duration))s")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+
+    var serviceBadgeColor: Color {
+        switch record.serviceUsed.lowercased() {
+        case "whisperkit": return .green
+        case "openai": return .blue
+        default: return .gray
+        }
+    }
+}
+```
+
+**Menu Bar Integration**:
+- Accessible via menu bar: "History..." (⌘H shortcut)
+- Opens in new window
+- Window is closable and reopenable
+- State persists across sessions
+
+**Performance Optimizations**:
+- Lazy loading with SwiftData @Query
+- Limit prevents excessive memory usage
+- Search uses efficient predicate filtering
+- Row recycling with List component
+
+---
+
 ## Key Algorithms
 
 ### 1. Recording State Machine
@@ -983,6 +1499,165 @@ func downloadModel(_ model: Model, progressCallback: @escaping (String) -> Void)
     progressCallback("Download complete!")
 }
 ```
+
+---
+
+### 5. AI Post-Processing Algorithm
+
+**Purpose**: Enhance raw transcriptions with proper formatting using AI
+
+**Overview** (New in v1.0):
+Post-processing is an optional step that improves transcription quality by adding punctuation, capitalization, and formatting. Users can choose between two modes:
+- **OpenAI Mode**: Cloud-based enhancement using GPT-4o-mini
+- **MLX Mode**: Local on-device enhancement using MLX models
+
+**Decision Flow**:
+
+```swift
+func performPostProcessing(text: String, service: TranscriptionService) async throws -> String {
+    // 1. Check if post-processing is enabled for this service
+    let postProcessKey = "\(service.identifier)_post_process_enabled"
+    guard UserDefaults.standard.bool(forKey: postProcessKey) else {
+        return text  // Return raw text if disabled
+    }
+
+    // 2. Determine which post-processor to use based on service
+    do {
+        switch service.identifier {
+        case "whisperkit":
+            // Use local MLX for privacy
+            return try await mlxService.postProcess(text: text) { progress in
+                progressCallback?(progress)
+            }
+
+        case "openai":
+            // Use OpenAI GPT-4o-mini for cloud
+            return try await openAIService.postProcess(text: text)
+
+        default:
+            return text
+        }
+    } catch {
+        // Graceful fallback: if post-processing fails, return original text
+        logger.error("Post-processing failed: \(error.localizedDescription)")
+        return text
+    }
+}
+```
+
+**OpenAI Post-Processing Flow**:
+
+```
+Raw Text
+    ↓
+Build system prompt: "You are a formatting assistant..."
+    ↓
+Build user prompt: "Format this transcription: {text}"
+    ↓
+Call GPT-4o-mini via chat completions API
+    ↓
+Extract enhanced text from response
+    ↓
+Return formatted text
+```
+
+**MLX Post-Processing Flow**:
+
+```
+Raw Text
+    ↓
+Check if model downloaded
+    ├─ No → Download model with progress
+    └─ Yes → Continue
+    ↓
+Check if model loaded
+    ├─ No → Load model into memory
+    └─ Yes → Continue
+    ↓
+Build enhancement prompt
+    ↓
+Run local inference (Metal acceleration)
+    ↓
+Extract and clean enhanced text
+    ↓
+Return formatted text
+```
+
+**Prompt Engineering**:
+
+Both services use carefully crafted prompts to ensure consistent results:
+
+```
+System Prompt:
+"You are a text formatting assistant. Your job is to add proper punctuation, capitalization,
+and formatting to transcribed speech. Do not change any words, only improve formatting.
+Be conservative with changes - only fix obvious errors."
+
+User Prompt:
+"Format this transcription:
+
+{raw_text}
+
+Improved version:"
+```
+
+**Graceful Fallback Strategy**:
+
+Post-processing failures should never lose user data:
+
+```swift
+do {
+    enhancedText = try await postProcess(rawText)
+} catch {
+    // Log error
+    logger.error("Post-processing failed: \(error)")
+
+    // Show user notification (optional)
+    showNotification("Enhancement failed, using original transcription")
+
+    // Return original text
+    enhancedText = rawText
+}
+
+// Always copy to clipboard (enhanced or original)
+NSPasteboard.general.setString(enhancedText, forType: .string)
+```
+
+**Performance Considerations**:
+
+| Service | Mode | Typical Time (100 words) | Cost |
+|---------|------|--------------------------|------|
+| WhisperKit + MLX | Local | 3-12s (depending on model) | Free |
+| OpenAI + GPT-4o-mini | Cloud | 1-2s | ~$0.004/transcription |
+
+**User Experience**:
+
+During post-processing, the UI shows:
+1. Progress message: "Enhancing with AI..."
+2. Sparkle icon (✨) to indicate AI processing
+3. Progress updates from callbacks
+4. Final result or fallback to original
+
+**Configuration**:
+
+Users control post-processing via Settings:
+- Per-service toggle: "Enhance transcriptions"
+- MLX model selection (if using WhisperKit)
+- Clear explanation of privacy tradeoffs
+
+**Privacy Comparison**:
+
+| Mode | Data Sent | Privacy Level | Cost |
+|------|-----------|---------------|------|
+| WhisperKit + MLX | Nothing | Highest (100% local) | Free |
+| OpenAI + GPT-4o-mini | Transcribed text only | Medium | ~$0.01/transcription |
+
+**Benefits**:
+
+- **Improved Readability**: Proper sentences with capitals and periods
+- **Professional Quality**: Output ready for documentation or emails
+- **Time Savings**: No manual editing needed
+- **Flexibility**: Choose cloud (fast) or local (private)
 
 ---
 

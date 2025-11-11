@@ -157,45 +157,61 @@ VoiceScribe becomes the go-to voice transcription tool for Mac users who value:
 
 ### F3: Local Transcription (WhisperKit) (P0)
 
-**Description**: On-device speech-to-text using CoreML-optimized Whisper models.
+**Description**: On-device speech-to-text using CoreML-optimized Whisper models with optional AI enhancement.
 
 **User Value**:
 - Complete privacy - audio never leaves device
 - Works offline (no internet required)
 - Free (no API costs)
 - Fast on Apple Silicon
+- **Optional local AI post-processing** for perfect formatting (v1.0)
 
 **Technical Details**:
 - WhisperKit library from Argmax
-- 4 model sizes: Tiny, Base, Small, Medium
+- **3 model sizes**: Base (Fast), Small (Balanced), Medium (Quality)
+- **Note**: Tiny model removed in v1.0 - Base provides better balance
 - Apple Silicon only (M1+)
 - Models stored in ~/Documents/huggingface/
 - Automatic model download on first use
+- **Optional MLX post-processing** with 3 model sizes (v1.0):
+  - Qwen 2.5 0.5B (Fast) - ~300MB
+  - Llama 3.2 3B (Balanced) - ~1.8GB
+  - Phi-3.5 Mini (Quality) - ~2.4GB
 
 **Acceptance Criteria**:
-- [ ] Tiny model transcribes 60s audio in <5s on M1
 - [ ] Base model transcribes 60s audio in <10s on M1
+- [ ] Small model transcribes 60s audio in <15s on M1
+- [ ] Medium model transcribes 60s audio in <30s on M1
 - [ ] Accuracy: >85% WER (Word Error Rate) for clear speech
 - [ ] Works completely offline after model download
 - [ ] Clear error message on Intel Macs
+- [ ] **Post-processing enhances formatting** without changing words (v1.0)
+- [ ] **Graceful fallback** if post-processing fails (v1.0)
 
 ---
 
 ### F4: Cloud Transcription (OpenAI API) (P0)
 
-**Description**: High-accuracy speech-to-text using OpenAI's Whisper API.
+**Description**: High-accuracy speech-to-text using OpenAI's transcription models with optional AI enhancement.
 
 **User Value**:
 - Works on Intel Macs
 - Highest accuracy available
 - No model downloads required
 - Always latest Whisper version
+- **Multiple model options** for different needs (v1.0)
+- **Optional cloud AI post-processing** for perfect formatting (v1.0)
 
 **Technical Details**:
-- OpenAI Whisper API (whisper-1 model)
+- Service renamed to "OpenAI Transcription" (v1.0)
+- **3 model options** (v1.0):
+  - whisper-1 (Whisper V2) - $0.006/min - Standard, fast (default)
+  - gpt-4o-transcribe - $0.024/min - Premium accuracy
+  - gpt-4o-mini-transcribe - $0.0006/min - Budget option
 - HTTPS POST with multipart/form-data
 - API key stored in macOS Keychain
 - Max file size: 25 MB
+- **Optional GPT-4o-mini post-processing** - ~$0.004/transcription (v1.0)
 
 **Acceptance Criteria**:
 - [ ] API key validation on save
@@ -203,6 +219,9 @@ VoiceScribe becomes the go-to voice transcription tool for Mac users who value:
 - [ ] Accuracy: >90% WER for clear speech
 - [ ] Handles network errors gracefully
 - [ ] Clear error messages for API issues
+- [ ] **Model selection works** (v1.0)
+- [ ] **Post-processing enhances formatting** without changing words (v1.0)
+- [ ] **Total cost ~$0.01/min** with post-processing enabled (v1.0)
 
 ---
 
@@ -255,25 +274,41 @@ VoiceScribe becomes the go-to voice transcription tool for Mac users who value:
 
 ### F7: Transcription History (P0)
 
-**Description**: View and search past transcriptions with SwiftData persistence.
+**Description**: View, search, and manage past transcriptions with full UI and configurable limits.
 
 **User Value**:
 - Reference previous transcriptions
 - Search for specific content
 - Recover accidentally deleted text
+- **Click to copy again** (v1.0)
+- **Configurable history limits** prevent database bloat (v1.0)
+- **Service badges** for quick identification (v1.0)
 
 **Technical Details**:
 - SwiftData for persistence
-- Stores: text, date, service used, duration
+- Stores: text, timestamp, service used, audio duration, audio file path (optional)
 - Sorted newest first
 - Search with SwiftUI's searchable modifier
+- **Full HistoryView UI** with window (v1.0):
+  - Accessible via menu bar (⌘H shortcut)
+  - Service badges (green for WhisperKit, blue for OpenAI)
+  - Relative timestamps ("2 minutes ago")
+  - Duration display
+- **Configurable limits**: 10, 25, 50, or 100 records (v1.0)
+- **Automatic cleanup** deletes records beyond limit (v1.0)
+- **Empty state view** for new users (v1.0)
 
 **Acceptance Criteria**:
 - [ ] All transcriptions saved automatically
 - [ ] History survives app restart
 - [ ] Search returns results instantly
 - [ ] Delete removes from history
-- [ ] No storage limit (P0), 1000 item limit (P1)
+- [ ] **Click any row to copy text to clipboard** (v1.0)
+- [ ] **History limit selector works** (10/25/50/100) (v1.0)
+- [ ] **Auto-cleanup enforces limit** (v1.0)
+- [ ] **Service badges color-coded correctly** (v1.0)
+- [ ] **Relative timestamps update** ("5 minutes ago") (v1.0)
+- [ ] **Empty state shown when no history** (v1.0)
 
 ---
 
@@ -396,6 +431,70 @@ VoiceScribe becomes the go-to voice transcription tool for Mac users who value:
 
 ---
 
+### F13: AI Post-Processing (P0) **NEW in v1.0**
+
+**Description**: Optional AI-powered enhancement of transcriptions for perfect punctuation, capitalization, and formatting.
+
+**User Value**:
+- **Professional quality output** ready for documentation or emails
+- **Dual-mode**: Choose between cloud (fast) or local (private)
+- **No manual editing** needed after transcription
+- **Preserves original words** - only improves formatting
+- **Graceful fallback** - never loses transcription if enhancement fails
+
+**Technical Details**:
+- **Two post-processing modes**:
+  1. **OpenAI Mode** (for OpenAI service):
+     - Uses GPT-4o-mini via chat completions API
+     - Cloud-based enhancement
+     - Cost: ~$0.004 per transcription (~$0.01/min total)
+     - Fast: 1-2 seconds for 100 words
+
+  2. **MLX Mode** (for WhisperKit service):
+     - 100% local, privacy-preserving
+     - Uses on-device LLM models (Qwen, Llama, or Phi)
+     - Apple Silicon only
+     - Free, but slower: 3-12 seconds for 100 words
+     - Models: 300MB - 2.4GB
+
+- **Configuration**:
+  - Toggle per service in Settings
+  - MLX model selection for WhisperKit
+  - Clear privacy tradeoff explanations
+  - Progress indicators during enhancement
+
+- **Enhancement capabilities**:
+  - Adds periods, commas, and punctuation
+  - Capitalizes proper nouns and sentence starts
+  - Formats into readable paragraphs
+  - Preserves original words (no paraphrasing)
+
+**Acceptance Criteria**:
+- [ ] Toggle works for each service independently
+- [ ] OpenAI mode enhances text in <3s for typical transcription
+- [ ] MLX mode works 100% offline after model download
+- [ ] Enhancement improves readability (manual evaluation)
+- [ ] Original words never changed (only formatting)
+- [ ] Graceful fallback returns raw text if enhancement fails
+- [ ] Progress indicator shows "Enhancing with AI..." with sparkle icon
+- [ ] MLX model download shows progress
+- [ ] Clear error messages if enhancement fails
+- [ ] Privacy explanation visible in Settings
+
+**Privacy Comparison**:
+
+| Mode | Data Sent | Privacy Level | Cost | Speed |
+|------|-----------|---------------|------|-------|
+| WhisperKit + MLX | Nothing | Highest (100% local) | Free | 3-12s |
+| OpenAI + GPT-4o-mini | Text only | Medium | ~$0.004 | 1-2s |
+
+**Target Personas**:
+- **Privacy-Conscious Pete**: Uses WhisperKit + MLX for client-confidential content
+- **Developer Dave**: Uses OpenAI + GPT-4o-mini for speed when documenting code
+- **Writer Wendy**: Uses MLX for article drafts (privacy + quality)
+
+---
+
 ## User Stories
 
 ### Recording Flow
@@ -511,6 +610,80 @@ Acceptance:
 - Can retry with WhisperKit
 ```
 
+### AI Post-Processing (NEW in v1.0)
+
+**Story 8: Privacy-Preserving Enhancement**
+```
+As a lawyer working with confidential client information
+I want to improve my transcription formatting without sending data to the cloud
+So that I maintain client confidentiality while getting professional results
+
+Acceptance:
+- Select WhisperKit in settings
+- Enable "Enhance transcriptions" toggle
+- Select MLX model (e.g., Llama 3.2 3B)
+- Record client notes (3 minutes)
+- See "Enhancing with AI..." progress indicator
+- Receive perfectly formatted text with proper punctuation
+- Confirm no network activity during enhancement (Activity Monitor)
+- Text quality suitable for legal documentation
+- Total time <15 seconds from stop to clipboard
+```
+
+**Story 9: Fast Cloud Enhancement**
+```
+As a developer documenting code quickly
+I want AI-enhanced transcriptions without waiting
+So that I can get back to coding faster
+
+Acceptance:
+- Select OpenAI service in settings
+- Enable "Enhance transcriptions" toggle
+- Record code documentation (30 seconds)
+- See sparkle icon during AI enhancement
+- Receive formatted text in <5 seconds total
+- Text has proper capitalization and punctuation
+- Paste directly into code comments
+- Understand cost is ~$0.01 per transcription (acceptable)
+```
+
+**Story 10: Enhanced Accuracy for Writers**
+```
+As a writer drafting an article
+I want my spoken thoughts formatted professionally
+So that I can paste directly into my editor without manual cleanup
+
+Acceptance:
+- Use either WhisperKit or OpenAI service
+- Enable post-processing
+- Speak article draft (5 minutes) naturally with "um"s and pauses
+- Processing shows progress updates
+- Result has:
+  - Proper sentence capitalization
+  - Correct punctuation (periods, commas)
+  - Paragraph breaks where appropriate
+  - Original words preserved (no paraphrasing)
+- Paste into writing app and use immediately
+- Manual editing reduced by 80%
+```
+
+**Story 11: Graceful Fallback**
+```
+As a user with unstable internet
+I want transcription to work even if AI enhancement fails
+So that I never lose my spoken content
+
+Acceptance:
+- Use OpenAI service with post-processing enabled
+- Record transcription (1 minute)
+- Simulate network failure during enhancement step
+- See error: "Enhancement failed, using original transcription"
+- Transcription still copied to clipboard (raw, unenhanced)
+- Can paste and use immediately
+- Data not lost
+- Can try again with WhisperKit + MLX (offline)
+```
+
 ---
 
 ## Success Metrics
@@ -533,6 +706,8 @@ Acceptance:
 | Weekly active users (WAU) | 1,000 | Telemetry (P2) |
 | Feature usage: Auto-paste | 60% | Telemetry (P2) |
 | Feature usage: WhisperKit | 70% | Telemetry (P2) |
+| **Feature usage: AI Post-Processing** | **40%** | **Telemetry (P2)** **NEW v1.0** |
+| **Feature usage: History View** | **30%** | **Telemetry (P2)** **NEW v1.0** |
 
 ### Quality Metrics
 
@@ -608,10 +783,10 @@ Acceptance:
 - Navigate to specific timestamp
 - Useful for editing
 
-**P2.5: Text Formatting**
-- Auto-capitalize sentences
-- Smart punctuation
-- Remove filler words ("um", "uh")
+**P2.5: Text Formatting** ✅ **IMPLEMENTED in v1.0 via AI Post-Processing (F13)**
+- Auto-capitalize sentences ✅
+- Smart punctuation ✅
+- Remove filler words ("um", "uh") - Partial (models can do this, but not explicitly prompted)
 
 **P2.6: Snippets & Templates**
 - Save common phrases as snippets
@@ -762,15 +937,21 @@ Acceptance:
 | Global hotkey | ✅ | ✅ | ❌ | ✅ |
 | Auto-paste | ✅ | ✅ | ❌ | ✅ |
 | History | ✅ | ❌ | ✅ | ❌ |
+| **History UI with search** | ✅ **NEW** | ❌ | ⚠️ (basic) | ❌ |
+| **AI Post-Processing** | ✅ **NEW** | ❌ | ❌ | ❌ |
+| **Dual-mode enhancement** | ✅ **NEW** | ❌ | ❌ | ❌ |
+| **Multiple transcription models** | ✅ **NEW** | ❌ | ⚠️ (Whisper only) | ❌ |
 | Open source | ✅ | ❌ | ✅ | ❌ |
 | Free | ✅ | ✅ | ✅ | $$ |
 | Intel Mac | ⚠️ (cloud only) | ✅ | ✅ | ✅ |
 
 **Key Differentiators**:
 1. **Only tool with both local and cloud transcription**
-2. **Full history tracking with search**
-3. **Open source and free**
-4. **Modern Swift 6 / SwiftUI architecture**
+2. **Unique dual-mode AI post-processing** (cloud or local) **NEW in v1.0**
+3. **Full history UI with configurable limits and search** **NEW in v1.0**
+4. **Multiple model options per service** (Whisper, GPT-4o, MLX) **NEW in v1.0**
+5. **Open source and free**
+6. **Modern Swift 6 / SwiftUI architecture**
 
 ---
 
@@ -778,10 +959,15 @@ Acceptance:
 
 - **v1.0** (2025-01): Initial release
   - Global hotkey recording
-  - WhisperKit and OpenAI support
+  - WhisperKit and OpenAI support (3 models each)
   - Auto-paste functionality
-  - History tracking
-  - Settings panel
+  - **AI Post-Processing** with dual modes (OpenAI cloud / MLX local)
+  - **Full History UI** with configurable limits (10/25/50/100)
+  - **Click-to-copy** from history
+  - **Service badges** and relative timestamps
+  - Model management (WhisperKit: Base/Small/Medium, MLX: Qwen/Llama/Phi)
+  - Settings panel with enhanced UI
+  - Menu bar integration
 
 ---
 
