@@ -196,7 +196,7 @@ struct SettingsView: View {
     private var serviceDescription: String {
         switch selectedService {
         case "openai":
-            return "Cloud-based transcription using OpenAI's API. Supports Whisper and GPT-4o models. Requires internet and API key."
+            return "Cloud transcription via OpenAI API. Supports Whisper and GPT-4o models. Requires internet and API key."
         case "whisperkit":
             return "Local transcription using CoreML. Audio never leaves your device. No API key needed."
         default:
@@ -212,7 +212,7 @@ struct SettingsView: View {
                 .font(.headline)
 
             // Model Selection
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Model")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -278,7 +278,7 @@ struct SettingsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             // Post-Processing
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 Toggle("Enable AI Post-Processing", isOn: $openAIPostProcessEnabled)
                     .font(.subheadline)
 
@@ -294,24 +294,8 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(.top, 4)
-
-                if openAIPostProcessEnabled {
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "cloud.fill")
-                                .foregroundStyle(.blue)
-                            Text("Cloud-Based Processing")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.blue)
-                        }
-                        Text("Audio is transcribed by OpenAI, then enhanced by GPT-4o-mini. Transcription text sent to OpenAI servers.")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                    .padding(.top, 4)
-                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
             .background(.quaternary.opacity(0.3))
             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -430,16 +414,6 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            // Show requirement notice
-            HStack(spacing: 6) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundStyle(.blue)
-                Text("Requires Apple Silicon (M1/M2/M3/M4) and a downloaded model")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 4)
-
             if whisperKitPostProcessEnabled {
                 Divider()
                 mlxModelSelectionView
@@ -471,7 +445,7 @@ struct SettingsView: View {
     }
 
     private var mlxModelSelectionView: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Local AI Model")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
