@@ -49,14 +49,10 @@ Let your voice do the work.
 ## Installation
 
 1. Download the latest release
-2. Move `VoiceScribe.app` to Applications
-3. **Right-click** and select **"Open"** (required for unsigned apps)
+2. Unzip and move `VoiceScribe.app` to Applications
+3. Double-click to open
 
-If you see "VoiceScribe is damaged", run:
-
-```bash
-xattr -cr /Applications/VoiceScribe.app
-```
+The app is signed and notarized by Apple, so it will open without any security warnings.
 
 ## Usage
 

@@ -403,7 +403,9 @@ xcodebuild archive \
   - Run from Actions tab: Actions → Release → Run workflow
   - Enter version (e.g., `1.0.1`)
   - Creates universal binary (Intel + Apple Silicon)
-  - Publishes GitHub release with ZIP
+  - Signs with Developer ID Application certificate
+  - Notarizes with Apple for Gatekeeper approval
+  - Publishes GitHub release with signed and notarized ZIP
 
 ## Common Development Scenarios
 
@@ -727,3 +729,4 @@ VoiceScribe/
 - Added history management with automatic cleanup
 - Enhanced SettingsView with post-processing configuration
 - Added relative time display for history timestamps
+- Added code signing and notarization to release workflow
