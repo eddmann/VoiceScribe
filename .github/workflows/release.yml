@@ -182,6 +182,24 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          SHA=$(shasum -a 256 VoiceScribe-${{ inputs.version }}.zip | cut -d' ' -f1)
+
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/eddmann/homebrew-tap.git
+          cd homebrew-tap
+
+          sed -i '' "s/version \".*\"/version \"${{ inputs.version }}\"/" Casks/voicescribe.rb
+          sed -i '' "s/sha256 \".*\"/sha256 \"${SHA}\"/" Casks/voicescribe.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/voicescribe.rb
+          git commit -m "chore(voicescribe): update to ${{ inputs.version }}"
+          git push
+
       - name: Cleanup keychain
         if: always()
         run: |

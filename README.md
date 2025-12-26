@@ -48,7 +48,15 @@ Let your voice do the work.
 
 ## Installation
 
-1. Download the latest release
+### Homebrew (Recommended)
+
+```bash
+brew install eddmann/tap/voicescribe
+```
+
+### Manual Download
+
+1. Download the latest release from [GitHub Releases](https://github.com/eddmann/VoiceScribe/releases)
 2. Unzip and move `VoiceScribe.app` to Applications
 3. Double-click to open
 
