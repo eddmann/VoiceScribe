@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>VoiceScribe - Let Your Voice Do The Work | macOS Voice Transcription</title>
+    <meta name="title" content="VoiceScribe - Let Your Voice Do The Work | macOS Voice Transcription">
+    <meta name="description" content="A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.">
+    <meta name="keywords" content="VoiceScribe, voice transcription, macOS, speech to text, AI transcription, dictation, voice recording, whisper, local transcription">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Edd Mann">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://eddmann.com/VoiceScribe/">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eddmann.com/VoiceScribe/">
+    <meta property="og:title" content="VoiceScribe - Let Your Voice Do The Work">
+    <meta property="og:description" content="A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.">
+    <meta property="og:image" content="https://eddmann.com/VoiceScribe/preview.png">
+    <meta property="og:site_name" content="VoiceScribe">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://eddmann.com/VoiceScribe/">
+    <meta property="twitter:title" content="VoiceScribe - Let Your Voice Do The Work">
+    <meta property="twitter:description" content="A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.">
+    <meta property="twitter:image" content="https://eddmann.com/VoiceScribe/preview.png">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "VoiceScribe",
+        "operatingSystem": "macOS 14.0 or later",
+        "applicationCategory": "UtilitiesApplication",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "description": "A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.",
+        "downloadUrl": "https://github.com/eddmann/VoiceScribe/releases/latest",
+        "softwareVersion": "1.0.0",
+        "author": {
+            "@type": "Person",
+            "name": "Edd Mann"
+        },
+        "image": "https://eddmann.com/VoiceScribe/logo.png",
+        "screenshot": "https://eddmann.com/VoiceScribe/preview.png"
+    }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Instrument Serif', 'serif'],
+                        body: ['DM Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        surface: '#fafafa',
+                        card: 'rgba(255, 255, 255, 0.7)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html, body {
+            font-family: 'DM Sans', sans-serif;
+            background: #fafafa;
+            overflow-x: hidden;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow:
+                0 4px 24px -1px rgba(139, 92, 246, 0.08),
+                0 2px 8px -1px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .glass-card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 20px 40px -8px rgba(139, 92, 246, 0.15),
+                0 8px 16px -4px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        /* Floating animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Fade in animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .stagger-1 { animation-delay: 0.1s !important; }
+        .stagger-2 { animation-delay: 0.2s !important; }
+        .stagger-3 { animation-delay: 0.3s !important; }
+        .stagger-4 { animation-delay: 0.4s !important; }
+        .stagger-5 { animation-delay: 0.5s !important; }
+        .stagger-6 { animation-delay: 0.6s !important; }
+
+        /* Subtle pulse for the app icon */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.5; }
+            50% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.5; }
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 4s ease-in-out infinite;
+        }
+
+        /* Terminal styling */
+        .terminal {
+            background: linear-gradient(180deg, #1e1e1e 0%, #151515 100%);
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Ambient background orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        @media (min-width: 768px) {
+            .orb {
+                opacity: 0.4;
+            }
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: #8b5cf6;
+            top: -100px;
+            right: -100px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #ec4899;
+            bottom: 20%;
+            left: -100px;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: #a855f7;
+            top: 50%;
+            right: 10%;
+            animation: float 12s ease-in-out infinite;
+        }
+
+        /* Feature icon containers */
+        .feature-icon {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        /* Button hover effect */
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -4px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Keyboard key styling */
+        .kbd {
+            background: linear-gradient(180deg, #f5f5f5 0%, #e5e5e5 100%);
+            border: 1px solid #d4d4d4;
+            border-bottom-width: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Copy button */
+        .copy-btn {
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Selection color */
+        ::selection {
+            background: rgba(139, 92, 246, 0.3);
+        }
+
+        /* Hide scrollbar but allow scrolling */
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Initial opacity for scroll animations */
+        .opacity-0-initial { opacity: 0; }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .float-animation,
+            .animate-fade-in-up,
+            .pulse-ring,
+            [class*="stagger-"] {
+                animation: none !important;
+            }
+            .opacity-0-initial,
+            .animate-fade-in-up {
+                opacity: 1;
+            }
+            .glass-card-hover:hover {
+                transform: none;
+            }
+            .orb {
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+    <!-- Ambient orbs -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center px-6 py-20">
+        <div class="max-w-4xl mx-auto text-center">
+            <!-- App Icon -->
+            <div class="animate-fade-in-up stagger-1 mb-10 relative inline-block">
+                <div class="absolute inset-0 gradient-bg rounded-[44px] blur-2xl opacity-30 pulse-ring"></div>
+                <div class="float-animation relative w-32 h-32 md:w-40 md:h-40 gradient-bg rounded-[44px] flex items-center justify-center shadow-2xl">
+                    <svg class="w-16 h-16 md:w-20 md:h-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="animate-fade-in-up stagger-2 font-display text-5xl md:text-7xl lg:text-8xl font-normal leading-[1.1] mb-6">
+                Let Your Voice<br>
+                <span class="gradient-text italic">Do The Work</span>
+            </h1>
+
+            <!-- Tagline -->
+            <p class="animate-fade-in-up stagger-3 font-body text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                Transform speech into text instantly with local AI processing.
+                Private, fast, and beautifully designed for macOS.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="animate-fade-in-up stagger-4 flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+                <a href="#installation" class="btn-primary gradient-bg text-white font-body font-medium text-lg px-8 py-4 rounded-2xl shadow-lg flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    Download for Mac
+                </a>
+                <a href="https://github.com/eddmann/VoiceScribe" target="_blank" rel="noopener noreferrer" class="font-body font-medium text-lg px-8 py-4 rounded-2xl text-gray-700 hover:text-gray-900 flex items-center gap-3 glass-card glass-card-hover">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.463 2 11.97c0 4.404 2.865 8.14 6.839 9.458.5.092.682-.216.682-.48 0-.236-.008-.864-.013-1.695-2.782.602-3.369-1.337-3.369-1.337-.454-1.151-1.11-1.458-1.11-1.458-.908-.618.069-.606.069-.606 1.003.07 1.531 1.027 1.531 1.027.892 1.524 2.341 1.084 2.91.828.092-.643.35-1.083.636-1.332-2.22-.251-4.555-1.107-4.555-4.927 0-1.088.39-1.979 1.029-2.675-.103-.252-.446-1.266.098-2.638 0 0 .84-.268 2.75 1.022A9.607 9.607 0 0112 6.82c.85.004 1.705.114 2.504.336 1.909-1.29 2.747-1.022 2.747-1.022.546 1.372.202 2.386.1 2.638.64.696 1.028 1.587 1.028 2.675 0 3.83-2.339 4.673-4.566 4.92.359.307.678.915.678 1.846 0 1.332-.012 2.407-.012 2.734 0 .267.18.577.688.48C19.137 20.107 22 16.373 22 11.969 22 6.463 17.522 2 12 2z"/>
+                    </svg>
+                    View on GitHub
+                </a>
+            </div>
+
+            <!-- Requirements Badge -->
+            <div class="animate-fade-in-up stagger-5 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full glass-card text-xs sm:text-sm text-gray-600 mb-16 sm:mb-0">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span class="whitespace-nowrap">macOS 14.0+</span>
+                <span class="text-gray-400">|</span>
+                <span class="whitespace-nowrap">Apple Silicon</span>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-fade-in-up stagger-6">
+            <div class="w-6 h-10 rounded-full border-2 border-gray-300 flex items-start justify-center p-1">
+                <div class="w-1.5 h-3 bg-gray-400 rounded-full animate-bounce"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="relative py-24 px-6">
+        <div class="max-w-6xl mx-auto">
+            <!-- Section Header -->
+            <div class="text-center mb-16">
+                <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-normal mb-4">
+                    Thoughtfully <span class="gradient-text italic">crafted</span>
+                </h2>
+                <p class="font-body text-lg text-gray-600 max-w-xl mx-auto">
+                    Every feature designed to stay out of your way while you focus on what matters.
+                </p>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Feature 1: Global Hotkey -->
+                <div class="glass-card glass-card-hover rounded-3xl p-8 group opacity-0-initial stagger-1">
+                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl mb-3">Instant Recording</h3>
+                    <p class="font-body text-gray-600 leading-relaxed mb-4">
+                        Start recording from anywhere with a single keyboard shortcut. No clicking, no searching.
+                    </p>
+                    <div class="flex items-center gap-1 flex-wrap">
+                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700">Option</span>
+                        <span class="text-gray-400">+</span>
+                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700">Shift</span>
+                        <span class="text-gray-400">+</span>
+                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700">Space</span>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Dual Engines -->
+                <div class="glass-card glass-card-hover rounded-3xl p-8 group opacity-0-initial stagger-2">
+                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl mb-3">Dual Transcription</h3>
+                    <p class="font-body text-gray-600 leading-relaxed">
+                        Choose WhisperKit for blazing-fast local processing or OpenAI's cloud transcription for maximum accuracy. Switch anytime.
+                    </p>
+                </div>
+
+                <!-- Feature 3: AI Enhancement -->
+                <div class="glass-card glass-card-hover rounded-3xl p-8 group opacity-0-initial stagger-3">
+                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl mb-3">AI Enhancement</h3>
+                    <p class="font-body text-gray-600 leading-relaxed">
+                        Optionally polish your transcriptions with AI. Perfect punctuation, capitalization, and formatting—automatically.
+                    </p>
+                </div>
+
+                <!-- Feature 4: Auto-Paste -->
+                <div class="glass-card glass-card-hover rounded-3xl p-8 group opacity-0-initial stagger-4">
+                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl mb-3">Auto-Paste</h3>
+                    <p class="font-body text-gray-600 leading-relaxed">
+                        Transcribed text goes straight to your cursor. Speak, stop, and it appears exactly where you need it.
+                    </p>
+                </div>
+
+                <!-- Feature 5: Privacy First -->
+                <div class="glass-card glass-card-hover rounded-3xl p-8 group opacity-0-initial stagger-5">
+                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl mb-3">Privacy First</h3>
+                    <p class="font-body text-gray-600 leading-relaxed">
+                        With WhisperKit, everything stays on your Mac. Your voice never leaves your device. 100% local, 100% private.
+                    </p>
+                </div>
+
+                <!-- Feature 6: History -->
+                <div class="glass-card glass-card-hover rounded-3xl p-8 group opacity-0-initial stagger-6">
+                    <div class="feature-icon w-14 h-14 rounded-2xl flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl mb-3">Transcription History</h3>
+                    <p class="font-body text-gray-600 leading-relaxed">
+                        Every transcription is saved for easy access. Copy previous text, review your recordings, never lose a word.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="relative py-24 px-6">
+        <div class="max-w-3xl mx-auto">
+            <!-- Section Header -->
+            <div class="text-center mb-12">
+                <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-normal mb-4">
+                    Install in <span class="gradient-text italic">seconds</span>
+                </h2>
+                <p class="font-body text-lg text-gray-600">
+                    One command is all it takes to get started.
+                </p>
+            </div>
+
+            <!-- Terminal -->
+            <div class="terminal rounded-2xl overflow-hidden opacity-0-initial">
+                <!-- Terminal Header -->
+                <div class="px-4 py-3 flex items-center gap-4 border-b border-white/5">
+                    <div class="terminal-dots">
+                        <div class="terminal-dot bg-[#ff5f57]"></div>
+                        <div class="terminal-dot bg-[#febc2e]"></div>
+                        <div class="terminal-dot bg-[#28c840]"></div>
+                    </div>
+                    <span class="text-gray-500 text-sm font-body">Terminal</span>
+                </div>
+
+                <!-- Terminal Body -->
+                <div class="flex items-center py-4 pl-4 pr-2 md:pl-6 md:pr-4 font-mono">
+                    <div class="relative flex-1 overflow-hidden">
+                        <div class="overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center gap-2 md:gap-3 whitespace-nowrap pr-6">
+                                <span class="text-green-400 font-medium">$</span>
+                                <code class="text-gray-200 text-sm md:text-base">brew install eddmann/tap/voicescribe</code>
+                            </div>
+                        </div>
+                        <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#151515] to-transparent pointer-events-none md:hidden"></div>
+                    </div>
+                    <button class="js-copy-command copy-btn ml-2 p-2 rounded-lg text-gray-400 hover:text-white transition-colors flex-shrink-0" data-command="brew install eddmann/tap/voicescribe" title="Copy to clipboard">
+                        <svg class="copy-icon w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg class="check-icon w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Additional info -->
+            <p class="text-center mt-6 text-gray-500 font-body text-sm">
+                Or download directly from
+                <a href="https://github.com/eddmann/VoiceScribe/releases" class="text-purple-600 hover:text-purple-700 underline underline-offset-2 transition-colors">GitHub Releases</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative py-16 px-6 border-t border-gray-200/50">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Logo & Name -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                        </svg>
+                    </div>
+                    <span class="font-display text-xl">VoiceScribe</span>
+                </div>
+
+                <!-- Links -->
+                <div class="flex items-center gap-6">
+                    <a href="https://github.com/eddmann/VoiceScribe" target="_blank" rel="noopener noreferrer" class="font-body text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.463 2 11.97c0 4.404 2.865 8.14 6.839 9.458.5.092.682-.216.682-.48 0-.236-.008-.864-.013-1.695-2.782.602-3.369-1.337-3.369-1.337-.454-1.151-1.11-1.458-1.11-1.458-.908-.618.069-.606.069-.606 1.003.07 1.531 1.027 1.531 1.027.892 1.524 2.341 1.084 2.91.828.092-.643.35-1.083.636-1.332-2.22-.251-4.555-1.107-4.555-4.927 0-1.088.39-1.979 1.029-2.675-.103-.252-.446-1.266.098-2.638 0 0 .84-.268 2.75 1.022A9.607 9.607 0 0112 6.82c.85.004 1.705.114 2.504.336 1.909-1.29 2.747-1.022 2.747-1.022.546 1.372.202 2.386.1 2.638.64.696 1.028 1.587 1.028 2.675 0 3.83-2.339 4.673-4.566 4.92.359.307.678.915.678 1.846 0 1.332-.012 2.407-.012 2.734 0 .267.18.577.688.48C19.137 20.107 22 16.373 22 11.969 22 6.463 17.522 2 12 2z"/>
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+
+                <!-- Author -->
+                <p class="font-body text-gray-500 text-sm">
+                    Made by <a href="https://eddmann.com" target="_blank" rel="noopener noreferrer" class="text-gray-700 hover:text-gray-900 transition-colors">Edd Mann</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Copy to clipboard
+        document.querySelectorAll('.js-copy-command').forEach(button => {
+            button.addEventListener('click', () => {
+                const text = button.dataset.command;
+                navigator.clipboard.writeText(text);
+
+                const copyIcon = button.querySelector('.copy-icon');
+                const checkIcon = button.querySelector('.check-icon');
+                copyIcon.classList.add('hidden');
+                checkIcon.classList.remove('hidden');
+
+                setTimeout(() => {
+                    copyIcon.classList.remove('hidden');
+                    checkIcon.classList.add('hidden');
+                }, 2000);
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('opacity-0-initial');
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.opacity-0-initial').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
