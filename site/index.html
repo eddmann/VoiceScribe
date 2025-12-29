@@ -61,12 +61,21 @@
     }
     </script>
 
+    <!-- Theme flash prevention -->
+    <script>
+        if (localStorage.getItem('theme-preference') === 'dark' ||
+            (!localStorage.getItem('theme-preference') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -91,6 +100,11 @@
             font-family: 'DM Sans', sans-serif;
             background: #fafafa;
             overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        html.dark body {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
         }
 
         .gradient-text {
@@ -125,6 +139,36 @@
                 0 20px 40px -8px rgba(139, 92, 246, 0.15),
                 0 8px 16px -4px rgba(0, 0, 0, 0.06),
                 inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        /* Dark mode glass card */
+        html.dark .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        html.dark .glass-card-hover:hover {
+            background: rgba(30, 41, 59, 0.85);
+            box-shadow:
+                0 20px 40px rgba(139, 92, 246, 0.15),
+                0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        html.dark .kbd {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            border: 1px solid #475569;
+            color: #e2e8f0;
+        }
+
+        html.dark .orb {
+            opacity: 0.15;
+        }
+
+        @media (min-width: 768px) {
+            html.dark .orb {
+                opacity: 0.25;
+            }
         }
 
         /* Floating animation */
@@ -321,7 +365,19 @@
         }
     </style>
 </head>
-<body class="min-h-screen relative overflow-x-hidden">
+<body class="min-h-screen relative overflow-x-hidden text-gray-900 dark:text-gray-100">
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" onclick="toggleTheme()"
+        class="fixed top-6 right-6 z-50 p-3 rounded-2xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-lg border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300"
+        aria-label="Toggle dark mode">
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+    </button>
+
     <!-- Ambient orbs -->
     <div class="fixed inset-0 overflow-hidden pointer-events-none">
         <div class="orb orb-1"></div>
@@ -349,7 +405,7 @@
             </h1>
 
             <!-- Tagline -->
-            <p class="animate-fade-in-up stagger-3 font-body text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            <p class="animate-fade-in-up stagger-3 font-body text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
                 Transform speech into text instantly with local AI processing.
                 Private, fast, and beautifully designed for macOS.
             </p>
@@ -362,7 +418,7 @@
                     </svg>
                     Download for Mac
                 </a>
-                <a href="https://github.com/eddmann/VoiceScribe" target="_blank" rel="noopener noreferrer" class="font-body font-medium text-lg px-8 py-4 rounded-2xl text-gray-700 hover:text-gray-900 flex items-center gap-3 glass-card glass-card-hover">
+                <a href="https://github.com/eddmann/VoiceScribe" target="_blank" rel="noopener noreferrer" class="font-body font-medium text-lg px-8 py-4 rounded-2xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white flex items-center gap-3 glass-card glass-card-hover">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.463 2 11.97c0 4.404 2.865 8.14 6.839 9.458.5.092.682-.216.682-.48 0-.236-.008-.864-.013-1.695-2.782.602-3.369-1.337-3.369-1.337-.454-1.151-1.11-1.458-1.11-1.458-.908-.618.069-.606.069-.606 1.003.07 1.531 1.027 1.531 1.027.892 1.524 2.341 1.084 2.91.828.092-.643.35-1.083.636-1.332-2.22-.251-4.555-1.107-4.555-4.927 0-1.088.39-1.979 1.029-2.675-.103-.252-.446-1.266.098-2.638 0 0 .84-.268 2.75 1.022A9.607 9.607 0 0112 6.82c.85.004 1.705.114 2.504.336 1.909-1.29 2.747-1.022 2.747-1.022.546 1.372.202 2.386.1 2.638.64.696 1.028 1.587 1.028 2.675 0 3.83-2.339 4.673-4.566 4.92.359.307.678.915.678 1.846 0 1.332-.012 2.407-.012 2.734 0 .267.18.577.688.48C19.137 20.107 22 16.373 22 11.969 22 6.463 17.522 2 12 2z"/>
                     </svg>
@@ -371,20 +427,20 @@
             </div>
 
             <!-- Requirements Badge -->
-            <div class="animate-fade-in-up stagger-5 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full glass-card text-xs sm:text-sm text-gray-600 mb-16 sm:mb-0">
-                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="animate-fade-in-up stagger-5 inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full glass-card text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-16 sm:mb-0">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
                 <span class="whitespace-nowrap">macOS 14.0+</span>
-                <span class="text-gray-400">|</span>
+                <span class="text-gray-400 dark:text-gray-500">|</span>
                 <span class="whitespace-nowrap">Apple Silicon</span>
             </div>
         </div>
 
         <!-- Scroll indicator -->
         <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-fade-in-up stagger-6">
-            <div class="w-6 h-10 rounded-full border-2 border-gray-300 flex items-start justify-center p-1">
-                <div class="w-1.5 h-3 bg-gray-400 rounded-full animate-bounce"></div>
+            <div class="w-6 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-start justify-center p-1">
+                <div class="w-1.5 h-3 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"></div>
             </div>
         </div>
     </section>
@@ -397,7 +453,7 @@
                 <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-normal mb-4">
                     Thoughtfully <span class="gradient-text italic">crafted</span>
                 </h2>
-                <p class="font-body text-lg text-gray-600 max-w-xl mx-auto">
+                <p class="font-body text-lg text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
                     Every feature designed to stay out of your way while you focus on what matters.
                 </p>
             </div>
@@ -411,16 +467,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3">Instant Recording</h3>
-                    <p class="font-body text-gray-600 leading-relaxed mb-4">
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Instant Recording</h3>
+                    <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
                         Start recording from anywhere with a single keyboard shortcut. No clicking, no searching.
                     </p>
                     <div class="flex items-center gap-1 flex-wrap">
-                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700">Option</span>
-                        <span class="text-gray-400">+</span>
-                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700">Shift</span>
-                        <span class="text-gray-400">+</span>
-                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700">Space</span>
+                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700 dark:text-gray-200">Option</span>
+                        <span class="text-gray-400 dark:text-gray-500">+</span>
+                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700 dark:text-gray-200">Shift</span>
+                        <span class="text-gray-400 dark:text-gray-500">+</span>
+                        <span class="kbd px-2 py-1 rounded text-xs font-body font-medium text-gray-700 dark:text-gray-200">Space</span>
                     </div>
                 </div>
 
@@ -431,8 +487,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3">Dual Transcription</h3>
-                    <p class="font-body text-gray-600 leading-relaxed">
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Dual Transcription</h3>
+                    <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
                         Choose WhisperKit for blazing-fast local processing or OpenAI's cloud transcription for maximum accuracy. Switch anytime.
                     </p>
                 </div>
@@ -444,8 +500,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3">AI Enhancement</h3>
-                    <p class="font-body text-gray-600 leading-relaxed">
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">AI Enhancement</h3>
+                    <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
                         Optionally polish your transcriptions with AI. Perfect punctuation, capitalization, and formatting—automatically.
                     </p>
                 </div>
@@ -457,8 +513,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3">Auto-Paste</h3>
-                    <p class="font-body text-gray-600 leading-relaxed">
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Auto-Paste</h3>
+                    <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
                         Transcribed text goes straight to your cursor. Speak, stop, and it appears exactly where you need it.
                     </p>
                 </div>
@@ -470,8 +526,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3">Privacy First</h3>
-                    <p class="font-body text-gray-600 leading-relaxed">
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Privacy First</h3>
+                    <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
                         With WhisperKit, everything stays on your Mac. Your voice never leaves your device. 100% local, 100% private.
                     </p>
                 </div>
@@ -483,8 +539,8 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3">Transcription History</h3>
-                    <p class="font-body text-gray-600 leading-relaxed">
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Transcription History</h3>
+                    <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
                         Every transcription is saved for easy access. Copy previous text, review your recordings, never lose a word.
                     </p>
                 </div>
@@ -500,7 +556,7 @@
                 <h2 class="font-display text-4xl md:text-5xl lg:text-6xl font-normal mb-4">
                     Install in <span class="gradient-text italic">seconds</span>
                 </h2>
-                <p class="font-body text-lg text-gray-600">
+                <p class="font-body text-lg text-gray-600 dark:text-gray-400">
                     One command is all it takes to get started.
                 </p>
             </div>
@@ -540,7 +596,7 @@
             </div>
 
             <!-- Additional info -->
-            <p class="text-center mt-6 text-gray-500 font-body text-sm">
+            <p class="text-center mt-6 text-gray-500 dark:text-gray-400 font-body text-sm">
                 Or download directly from
                 <a href="https://github.com/eddmann/VoiceScribe/releases" class="text-purple-600 hover:text-purple-700 underline underline-offset-2 transition-colors">GitHub Releases</a>
             </p>
@@ -548,7 +604,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="relative py-16 px-6 border-t border-gray-200/50">
+    <footer class="relative py-16 px-6 border-t border-gray-200/50 dark:border-gray-700/50">
         <div class="max-w-4xl mx-auto">
             <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                 <!-- Logo & Name -->
@@ -558,12 +614,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                         </svg>
                     </div>
-                    <span class="font-display text-xl">VoiceScribe</span>
+                    <span class="font-display text-xl dark:text-white">VoiceScribe</span>
                 </div>
 
                 <!-- Links -->
                 <div class="flex items-center gap-6">
-                    <a href="https://github.com/eddmann/VoiceScribe" target="_blank" rel="noopener noreferrer" class="font-body text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2">
+                    <a href="https://github.com/eddmann/VoiceScribe" target="_blank" rel="noopener noreferrer" class="font-body text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors flex items-center gap-2">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.463 2 11.97c0 4.404 2.865 8.14 6.839 9.458.5.092.682-.216.682-.48 0-.236-.008-.864-.013-1.695-2.782.602-3.369-1.337-3.369-1.337-.454-1.151-1.11-1.458-1.11-1.458-.908-.618.069-.606.069-.606 1.003.07 1.531 1.027 1.531 1.027.892 1.524 2.341 1.084 2.91.828.092-.643.35-1.083.636-1.332-2.22-.251-4.555-1.107-4.555-4.927 0-1.088.39-1.979 1.029-2.675-.103-.252-.446-1.266.098-2.638 0 0 .84-.268 2.75 1.022A9.607 9.607 0 0112 6.82c.85.004 1.705.114 2.504.336 1.909-1.29 2.747-1.022 2.747-1.022.546 1.372.202 2.386.1 2.638.64.696 1.028 1.587 1.028 2.675 0 3.83-2.339 4.673-4.566 4.92.359.307.678.915.678 1.846 0 1.332-.012 2.407-.012 2.734 0 .267.18.577.688.48C19.137 20.107 22 16.373 22 11.969 22 6.463 17.522 2 12 2z"/>
                         </svg>
@@ -572,8 +628,8 @@
                 </div>
 
                 <!-- Author -->
-                <p class="font-body text-gray-500 text-sm">
-                    Made by <a href="https://eddmann.com" target="_blank" rel="noopener noreferrer" class="text-gray-700 hover:text-gray-900 transition-colors">Edd Mann</a>
+                <p class="font-body text-gray-500 dark:text-gray-400 text-sm">
+                    Made by <a href="https://eddmann.com" target="_blank" rel="noopener noreferrer" class="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Edd Mann</a>
                 </p>
             </div>
         </div>
@@ -611,6 +667,36 @@
         document.querySelectorAll('.opacity-0-initial').forEach(el => {
             observer.observe(el);
         });
+
+        // Theme toggle
+        (function() {
+            const STORAGE_KEY = 'theme-preference';
+
+            function getThemePreference() {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) return stored;
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            function setTheme(theme) {
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+            }
+
+            setTheme(getThemePreference());
+
+            window.toggleTheme = function() {
+                const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                localStorage.setItem(STORAGE_KEY, next);
+                setTheme(next);
+            };
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem(STORAGE_KEY)) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        })();
     </script>
 </body>
 </html>
