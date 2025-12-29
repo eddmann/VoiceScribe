@@ -367,8 +367,7 @@
 </head>
 <body class="min-h-screen relative overflow-x-hidden text-gray-900 dark:text-gray-100">
     <!-- Theme Toggle Button -->
-    <button id="theme-toggle" onclick="toggleTheme()"
-        class="fixed top-6 right-6 z-50 p-3 rounded-2xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-lg border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300"
+    <button class="js-theme-toggle fixed top-6 right-6 z-50 p-3 rounded-2xl bg-white/70 dark:bg-slate-800/70 backdrop-blur-lg border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300"
         aria-label="Toggle dark mode">
         <svg class="w-5 h-5 text-gray-600 dark:text-gray-300 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -684,12 +683,12 @@
 
             setTheme(getThemePreference());
 
-            window.toggleTheme = function() {
+            document.querySelector('.js-theme-toggle').addEventListener('click', () => {
                 const current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
                 const next = current === 'dark' ? 'light' : 'dark';
                 localStorage.setItem(STORAGE_KEY, next);
                 setTheme(next);
-            };
+            });
 
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                 if (!localStorage.getItem(STORAGE_KEY)) {
