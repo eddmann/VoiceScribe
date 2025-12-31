@@ -121,8 +121,8 @@ final class MenuBarController: NSObject {
 
         guard let window = recordingWindow else { return }
 
-        // Center and show window
-        window.center()
+        // Position at bottom center of screen
+        positionWindowAtBottomCenter(window)
         window.makeKeyAndOrderFront(nil)
 
         // Activate app and make sure window can receive keyboard input
@@ -132,13 +132,33 @@ final class MenuBarController: NSObject {
         window.makeFirstResponder(window.contentView)
     }
 
+    private func positionWindowAtBottomCenter(_ window: NSWindow) {
+        guard let screen = NSScreen.main else {
+            window.center()
+            return
+        }
+
+        let screenFrame = screen.visibleFrame
+        let windowWidth: CGFloat = 360
+        let windowHeight: CGFloat = 52
+        let bottomPadding: CGFloat = 60
+
+        let x = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
+        let y = screenFrame.origin.y + bottomPadding
+
+        window.setFrame(
+            NSRect(x: x, y: y, width: windowWidth, height: windowHeight),
+            display: true
+        )
+    }
+
     @objc private func closeRecordingWindow() {
         recordingWindow?.orderOut(nil)
     }
 
     private func createRecordingWindow() -> NSWindow {
         let window = KeyableWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 300, height: 240),
+            contentRect: NSRect(x: 0, y: 0, width: 360, height: 52),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -146,15 +166,15 @@ final class MenuBarController: NSObject {
 
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.hasShadow = true  // Enable window shadow
+        window.hasShadow = true
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
         // Allow window to become key to receive keyboard events
         window.isMovableByWindowBackground = true
 
-        // Set content view
-        let contentView = RecordingView()
+        // Set content view with new floating bar
+        let contentView = FloatingRecordBar()
             .environment(appState)
 
         window.contentView = NSHostingView(rootView: contentView)

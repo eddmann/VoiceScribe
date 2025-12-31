@@ -19,7 +19,7 @@
 		688FC4D72EA563590010F082 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C92EA563590010F082 /* SettingsView.swift */; };
 		688FC4D82EA563590010F082 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C32EA563590010F082 /* OpenAIService.swift */; };
 		688FC4D92EA563590010F082 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4BF2EA563590010F082 /* KeychainManager.swift */; };
-		688FC4DA2EA563590010F082 /* RecordingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C72EA563590010F082 /* RecordingView.swift */; };
+		A1B2C3E12EA563610010F082 /* FloatingRecordBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */; };
 		688FC4DB2EA563590010F082 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C22EA563590010F082 /* AudioRecorder.swift */; };
 		688FC4DC2EA563590010F082 /* TranscriptionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4BB2EA563590010F082 /* TranscriptionRecord.swift */; };
 		688FC4DD2EA563590010F082 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4B62EA563590010F082 /* MenuBarController.swift */; };
@@ -48,14 +48,14 @@
 		688FC4C22EA563590010F082 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		688FC4C32EA563590010F082 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		688FC4C42EA563590010F082 /* WhisperKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperKitService.swift; sourceTree = "<group>"; };
-		688FC4C72EA563590010F082 /* RecordingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingView.swift; sourceTree = "<group>"; };
+		A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingRecordBar.swift; sourceTree = "<group>"; };
 		688FC4C92EA563590010F082 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		688FC4CC2EA563590010F082 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		688FC4E12EA563590010F082 /* AppFocusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFocusManager.swift; sourceTree = "<group>"; };
 		688FC4E32EA563590010F082 /* PasteSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteSimulator.swift; sourceTree = "<group>"; };
 		6E6E5C195E684FCF8EE41B0D /* MLXService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXService.swift; sourceTree = "<group>"; };
 		890d01bf660e4a958d04321b /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		F6B97F8102248886B550DDAD /* HiddenWindowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HiddenWindowView.swift; path = UI/Utility/HiddenWindowView.swift; sourceTree = "<group>"; };
+		F6B97F8102248886B550DDAD /* HiddenWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenWindowView.swift; sourceTree = "<group>"; };
 		f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+RelativeTime.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -86,7 +86,6 @@
 				688FC4C62EA563590010F082 /* Shared */,
 				688FC4CB2EA563590010F082 /* UI */,
 				688FC4CC2EA563590010F082 /* Assets.xcassets */,
-				F6B97F8102248886B550DDAD /* HiddenWindowView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -168,7 +167,7 @@
 		688FC4C82EA563590010F082 /* Recording */ = {
 			isa = PBXGroup;
 			children = (
-				688FC4C72EA563590010F082 /* RecordingView.swift */,
+				A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */,
 			);
 			path = Recording;
 			sourceTree = "<group>";
@@ -205,8 +204,7 @@
 			children = (
 				F6B97F8102248886B550DDAD /* HiddenWindowView.swift */,
 			);
-			name = Utility;
-			path = UI/Utility;
+			path = Utility;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,7 +298,7 @@
 				688FC4D82EA563590010F082 /* OpenAIService.swift in Sources */,
 				985AC248CCA44A1F9E0696B3 /* MLXService.swift in Sources */,
 				688FC4D92EA563590010F082 /* KeychainManager.swift in Sources */,
-				688FC4DA2EA563590010F082 /* RecordingView.swift in Sources */,
+					A1B2C3E12EA563610010F082 /* FloatingRecordBar.swift in Sources */,
 				688FC4DB2EA563590010F082 /* AudioRecorder.swift in Sources */,
 				688FC4DC2EA563590010F082 /* TranscriptionRecord.swift in Sources */,
 				688FC4DD2EA563590010F082 /* MenuBarController.swift in Sources */,

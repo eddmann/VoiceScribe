@@ -1,6 +1,9 @@
 import SwiftUI
 import KeyboardShortcuts
 import ServiceManagement
+import os.log
+
+private let logger = Logger(subsystem: "com.eddmann.VoiceScribe", category: "Settings")
 
 /// Settings view for configuring transcription services
 struct SettingsView: View {
@@ -104,7 +107,7 @@ struct SettingsView: View {
                     try SMAppService.mainApp.unregister()
                 }
             } catch {
-                print("Failed to update launch at login: \(error)")
+                logger.error("Failed to update launch at login: \(error.localizedDescription)")
                 // Revert the toggle if it failed
                 launchAtLogin = SMAppService.mainApp.status == .enabled
             }
@@ -630,7 +633,7 @@ struct SettingsView: View {
                 try? await Task.sleep(for: .seconds(2))
                 showingAPIKeySaved = false
             } catch {
-                print("Failed to save API key: \(error)")
+                logger.error("Failed to save API key: \(error.localizedDescription)")
             }
         }
     }
@@ -644,7 +647,7 @@ struct SettingsView: View {
                     showingAPIKeySaved = false
                 }
             } catch {
-                print("Failed to delete API key: \(error)")
+                logger.error("Failed to delete API key: \(error.localizedDescription)")
             }
         }
     }

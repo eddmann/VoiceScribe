@@ -17,6 +17,8 @@ final class AppState {
     // MARK: - Recording State
     private(set) var recordingState: RecordingState = .idle
     private(set) var audioLevel: Float = 0.0
+    private(set) var audioLevelHistory: [Float] = Array(repeating: 0, count: 40)
+    private(set) var recordingStartDate: Date?
 
     // MARK: - Settings
     var selectedServiceIdentifier: String {
@@ -278,10 +280,18 @@ final class AppState {
     // MARK: - Audio Level Monitoring
 
     private func startAudioLevelMonitoring() {
+        recordingStartDate = Date()
         audioLevelTask = Task { @MainActor in
             while !Task.isCancelled {
-                audioLevel = audioRecorder.getAudioLevel()
-                try? await Task.sleep(for: .milliseconds(50))
+                let level = audioRecorder.getAudioLevel()
+                audioLevel = level
+
+                // Update history buffer for waveform visualization
+                audioLevelHistory.removeFirst()
+                audioLevelHistory.append(level)
+
+                // ~30fps for smooth waveform animation
+                try? await Task.sleep(for: .milliseconds(33))
             }
         }
     }
@@ -290,6 +300,9 @@ final class AppState {
         audioLevelTask?.cancel()
         audioLevelTask = nil
         audioLevel = 0.0
+        recordingStartDate = nil
+        // Reset history to flat line
+        audioLevelHistory = Array(repeating: 0, count: 40)
     }
 
     // MARK: - Cleanup
