@@ -7,17 +7,26 @@ struct VoiceScribeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {
-        // Menu bar app - Settings scene doesn't create a default window
-        Settings {
-            EmptyView()
+        // Hidden window keeps SwiftUI lifecycle alive for Settings scene
+        WindowGroup("VoiceScribeLifecycle") {
+            HiddenWindowView()
         }
+        .defaultSize(width: 1, height: 1)
+        .windowStyle(.hiddenTitleBar)
+
+        // Native Settings scene with tab icons
+        Settings {
+            SettingsView(appState: .shared)
+        }
+        .windowResizability(.contentSize)
     }
 }
 
 /// App delegate to manage menu bar and global state
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let appState = AppState()
+    // Use shared AppState instance
+    let appState = AppState.shared
     var menuBarController: MenuBarController?
     let hotkeyManager = HotkeyManager.shared
 
@@ -39,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Initialize model container (triggers lazy initialization)
         _ = modelContainer
 
-        // Menu bar app - hide from Dock (even in debug mode)
+        // Menu bar app - hide from Dock
         NSApplication.shared.setActivationPolicy(.accessory)
 
         // Setup menu bar with shared model container

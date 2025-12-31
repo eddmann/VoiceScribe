@@ -7,13 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4BB56399DE3B1A0C6BA84EF4 /* HiddenWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B97F8102248886B550DDAD /* HiddenWindowView.swift */; };
 		5a6ee497cf8c49b78e30153f /* Date+RelativeTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */; };
 		688FC48D2EA563180010F082 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48C2EA563180010F082 /* WhisperKit */; };
 		688FC4902EA563240010F082 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48F2EA563240010F082 /* KeyboardShortcuts */; };
-		A1B2C3D62EA563470010F082 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D42EA563450010F082 /* MLX */; };
-		A1B2C3D72EA563480010F082 /* MLXRandom in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D52EA563460010F082 /* MLXRandom */; };
-		A1B2C3D92EA5634A0010F082 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D82EA563490010F082 /* MLXLLM */; };
-		A1B2C3DB2EA5634C0010F082 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DA2EA5634B0010F082 /* MLXLMCommon */; };
 		688FC4D02EA563590010F082 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 688FC4CC2EA563590010F082 /* Assets.xcassets */; };
 		688FC4D22EA563590010F082 /* VoiceScribeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4B72EA563590010F082 /* VoiceScribeApp.swift */; };
 		688FC4D32EA563590010F082 /* WhisperKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C42EA563590010F082 /* WhisperKitService.swift */; };
@@ -32,6 +29,10 @@
 		688FC4E22EA563590010F082 /* PasteSimulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4E32EA563590010F082 /* PasteSimulator.swift */; };
 		701843d9b6cd4807bc3f7a3a /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890d01bf660e4a958d04321b /* HistoryView.swift */; };
 		985AC248CCA44A1F9E0696B3 /* MLXService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E6E5C195E684FCF8EE41B0D /* MLXService.swift */; };
+		A1B2C3D62EA563470010F082 /* MLX in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D42EA563450010F082 /* MLX */; };
+		A1B2C3D72EA563480010F082 /* MLXRandom in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D52EA563460010F082 /* MLXRandom */; };
+		A1B2C3D92EA5634A0010F082 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D82EA563490010F082 /* MLXLLM */; };
+		A1B2C3DB2EA5634C0010F082 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DA2EA5634B0010F082 /* MLXLMCommon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +55,7 @@
 		688FC4E32EA563590010F082 /* PasteSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteSimulator.swift; sourceTree = "<group>"; };
 		6E6E5C195E684FCF8EE41B0D /* MLXService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXService.swift; sourceTree = "<group>"; };
 		890d01bf660e4a958d04321b /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		F6B97F8102248886B550DDAD /* HiddenWindowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HiddenWindowView.swift; path = UI/Utility/HiddenWindowView.swift; sourceTree = "<group>"; };
 		f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+RelativeTime.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,6 +86,7 @@
 				688FC4C62EA563590010F082 /* Shared */,
 				688FC4CB2EA563590010F082 /* UI */,
 				688FC4CC2EA563590010F082 /* Assets.xcassets */,
+				F6B97F8102248886B550DDAD /* HiddenWindowView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -184,6 +187,7 @@
 				688FC4CE2EA563590010F082 /* History */,
 				688FC4C82EA563590010F082 /* Recording */,
 				688FC4CA2EA563590010F082 /* Settings */,
+				91CB001D6614E028CD622FAB /* Utility */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -194,6 +198,15 @@
 				890d01bf660e4a958d04321b /* HistoryView.swift */,
 			);
 			path = History;
+			sourceTree = "<group>";
+		};
+		91CB001D6614E028CD622FAB /* Utility */ = {
+			isa = PBXGroup;
+			children = (
+				F6B97F8102248886B550DDAD /* HiddenWindowView.swift */,
+			);
+			name = Utility;
+			path = UI/Utility;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -297,6 +310,7 @@
 				688FC4E22EA563590010F082 /* PasteSimulator.swift in Sources */,
 				701843d9b6cd4807bc3f7a3a /* HistoryView.swift in Sources */,
 				5a6ee497cf8c49b78e30153f /* Date+RelativeTime.swift in Sources */,
+				4BB56399DE3B1A0C6BA84EF4 /* HiddenWindowView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -521,12 +535,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		68534FB32EBCD51500E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift" */ = {
+		68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ml-explore/mlx-swift";
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.29.1;
+				kind = upToNextMinorVersion;
+				minimumVersion = 2.25.7;
 			};
 		};
 		688FC48B2EA563180010F082 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
@@ -543,14 +557,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.4.0;
-			};
-		};
-		68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
-			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 2.25.7;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

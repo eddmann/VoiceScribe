@@ -18,7 +18,6 @@ class KeyableWindow: NSWindow {
 final class MenuBarController: NSObject {
     private var statusItem: NSStatusItem?
     private var recordingWindow: NSWindow?
-    private var settingsWindow: NSWindow?
     private var historyWindow: NSWindow?
     private let appState: AppState
     private let modelContainer: ModelContainer?
@@ -205,37 +204,9 @@ final class MenuBarController: NSObject {
     }
 
     @objc func showSettings() {
-        // If settings window already exists and is visible, just bring it to front
-        if let window = settingsWindow, window.isVisible {
-            window.makeKeyAndOrderFront(nil)
-            return
-        }
-
-        // Create settings window
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 600, height: 600),
-            styleMask: [.titled, .closable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-
-        window.title = "Settings"
-        window.isReleasedWhenClosed = false
-
-        // Create settings view
-        let settingsView = SettingsView(appState: appState)
-
-        window.contentView = NSHostingView(rootView: settingsView)
-        window.center()
-
-        // Set delegate to handle window close
-        window.delegate = self
-
-        // Store reference
-        settingsWindow = window
-
-        window.makeKeyAndOrderFront(nil)
+        // Use native SwiftUI Settings scene via notification to HiddenWindowView
         NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(name: .openVoiceScribeSettings, object: nil)
     }
 
     @objc func showHistory() {
@@ -292,9 +263,7 @@ extension MenuBarController: NSWindowDelegate {
 
         Task { @MainActor in
             // Clean up window references when they close
-            if window === self.settingsWindow {
-                self.settingsWindow = nil
-            } else if window === self.historyWindow {
+            if window === self.historyWindow {
                 self.historyWindow = nil
             }
         }

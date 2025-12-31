@@ -1,5 +1,6 @@
 import SwiftUI
 import KeyboardShortcuts
+import ServiceManagement
 
 /// Settings view for configuring transcription services
 struct SettingsView: View {
@@ -22,6 +23,7 @@ struct SettingsView: View {
     @State private var hasAccessibilityPermission = false
     @State private var permissionCheckTask: Task<Void, Never>?
     @AppStorage("historyLimit") private var historyLimit: Int = 25
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     init(appState: AppState) {
         self.appState = appState
@@ -65,50 +67,52 @@ struct SettingsView: View {
             aboutTab
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(width: 600, height: 600)
+        .frame(width: 500)
     }
 
     // MARK: - Tab Views
 
     private var transcriptionServiceTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                serviceSelectionSection
+        VStack(alignment: .leading, spacing: 24) {
+            serviceSelectionSection
 
-                Divider()
+            Divider()
 
-                // Service-specific settings
-                if selectedService == "openai" {
-                    openAISection
-                } else if selectedService == "whisperkit" {
-                    whisperKitSection
-                }
+            // Service-specific settings
+            if selectedService == "openai" {
+                openAISection
+            } else if selectedService == "whisperkit" {
+                whisperKitSection
             }
-            .padding(24)
         }
+        .padding(24)
     }
 
     private var smartPasteTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                smartPasteSection
-
-                Divider()
-
-                keyboardShortcutSection
-
-                Divider()
-
-                historySection
+        VStack(alignment: .leading, spacing: 16) {
+            smartPasteSection
+            keyboardShortcutSection
+            historySection
+            launchAtLoginSection
+        }
+        .padding(24)
+        .onChange(of: launchAtLogin) { _, newValue in
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                print("Failed to update launch at login: \(error)")
+                // Revert the toggle if it failed
+                launchAtLogin = SMAppService.mainApp.status == .enabled
             }
-            .padding(24)
         }
     }
 
     private var aboutTab: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
+        VStack(spacing: 24) {
             // App Icon
             if let appIconImage = NSImage(named: "AppIcon") {
                 Image(nsImage: appIconImage)
@@ -122,29 +126,21 @@ struct SettingsView: View {
                     .foregroundStyle(.blue)
             }
 
-            Spacer()
-                .frame(height: 24)
+            // App Name & Version
+            VStack(spacing: 8) {
+                Text("VoiceScribe")
+                    .font(.system(size: 28, weight: .semibold))
 
-            // App Name
-            Text("VoiceScribe")
-                .font(.system(size: 28, weight: .semibold))
-
-            Spacer()
-                .frame(height: 8)
-
-            // Version
-            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-               let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-                Text("Version \(version) (\(build))")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+                   let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                    Text("Version \(version) (\(build))")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
             }
 
-            Spacer()
-                .frame(height: 32)
-
             // Copyright
-            VStack(spacing: 8) {
+            VStack(spacing: 4) {
                 Text("© 2025 Edd Mann")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -153,9 +149,6 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-
-            Spacer()
-                .frame(height: 32)
 
             // Project Link
             Link(destination: URL(string: "https://github.com/eddmann/VoiceScribe")!) {
@@ -168,24 +161,21 @@ struct SettingsView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-
-            Spacer()
         }
+        .padding(24)
         .frame(maxWidth: .infinity)
     }
 
     // MARK: - Service Selection
 
     private var serviceSelectionSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Transcription Service")
-                .font(.headline)
-
-            Picker("Service", selection: $selectedService) {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("", selection: $selectedService) {
                 Text("Local WhisperKit").tag("whisperkit")
                 Text("OpenAI Transcription").tag("openai")
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
 
             Text(serviceDescription)
                 .font(.caption)
@@ -208,442 +198,312 @@ struct SettingsView: View {
 
     private var openAISection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("OpenAI Configuration")
-                .font(.headline)
-
             // Model Selection
-            VStack(alignment: .leading, spacing: 12) {
+            HStack {
                 Text("Model")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+
+                Spacer()
 
                 Picker("Model", selection: $selectedOpenAIModel) {
                     ForEach(OpenAIService.Model.allCases, id: \.self) { model in
-                        VStack(alignment: .leading) {
-                            Text(model.displayName)
-                        }
-                        .tag(model)
+                        Text(model.displayName).tag(model)
                     }
                 }
                 .pickerStyle(.menu)
-
-                Text(selectedOpenAIModel.description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                .labelsHidden()
             }
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Text(selectedOpenAIModel.description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Divider()
+                .padding(.vertical, 4)
 
             // API Key
-            VStack(alignment: .leading, spacing: 8) {
+            HStack {
                 Text("API Key")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
 
-                HStack {
-                    SecureField("sk-...", text: $openAIKey)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(.body, design: .monospaced))
+                SecureField("sk-...", text: $openAIKey)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.system(.body, design: .monospaced))
 
-                    if !openAIKey.isEmpty {
-                        Button(action: {
-                            clearOpenAIKey()
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.borderless)
-                        .help("Clear API key")
+                if !openAIKey.isEmpty {
+                    Button(action: {
+                        clearOpenAIKey()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
                     }
+                    .buttonStyle(.borderless)
+                    .help("Clear API key")
                 }
 
+                Button("Save") {
+                    saveOpenAIKey()
+                }
+                .disabled(openAIKey.isEmpty)
+                .controlSize(.small)
+            }
+
+            HStack {
                 if showingAPIKeySaved {
-                    Label("API key saved securely", systemImage: "checkmark.circle.fill")
+                    Label("Saved", systemImage: "checkmark.circle.fill")
                         .font(.caption)
                         .foregroundStyle(.green)
                 }
 
-                Button("Save API Key") {
-                    saveOpenAIKey()
-                }
-                .disabled(openAIKey.isEmpty)
+                Spacer()
 
-                Link("Get an API key from OpenAI →",
+                Link("Get API key →",
                      destination: URL(string: "https://platform.openai.com/api-keys")!)
                     .font(.caption)
             }
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Divider()
+                .padding(.vertical, 4)
 
             // Post-Processing
-            VStack(alignment: .leading, spacing: 12) {
-                Toggle("Enable AI Post-Processing", isOn: $openAIPostProcessEnabled)
-                    .font(.subheadline)
+            Toggle("AI Post-Processing", isOn: $openAIPostProcessEnabled)
+                .font(.subheadline)
 
-                Text("Uses GPT-4o-mini AI to improve transcription formatting, punctuation, and clarity.")
+            Text("Uses GPT-4o-mini to improve formatting and punctuation.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Divider()
+                .padding(.vertical, 4)
+
+            // Cloud notice
+            HStack(spacing: 6) {
+                Image(systemName: "cloud.fill")
+                    .foregroundStyle(.blue)
+                Text("Requires internet connection")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-
-                HStack(spacing: 6) {
-                    Image(systemName: "network")
-                        .foregroundStyle(.orange)
-                    Text("Requires additional API call (~$0.01 per transcription)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.top, 4)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - WhisperKit Section
 
     private var whisperKitSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("WhisperKit Configuration")
-                .font(.headline)
-
-            // Model Configuration (merged: Model Size + Downloaded Models)
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Model Size")
+            // Model Selection Row with status
+            HStack {
+                Text("Model")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+
+                Spacer()
 
                 Picker("Model", selection: $selectedWhisperModel) {
                     ForEach(WhisperKitService.Model.allCases, id: \.self) { model in
-                        VStack(alignment: .leading) {
-                            Text(model.displayName)
-                            Text(model.approximateSize)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .tag(model)
+                        Text("\(model.displayName) (\(model.approximateSize))").tag(model)
                     }
                 }
                 .pickerStyle(.menu)
+                .labelsHidden()
 
-                Text("Larger models provide better accuracy but use more memory.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Divider()
-
-                Text("Downloaded Models")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                ForEach(WhisperKitService.Model.allCases, id: \.self) { model in
-                    modelRow(for: model)
-                }
-
-                if let error = downloadError {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-
-                Text("Models are downloaded once and stored locally for offline use.")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            // Post-Processing
-            mlxPostProcessingSection
-        }
-    }
-
-    @ViewBuilder
-    private func modelRow(for model: WhisperKitService.Model) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(model.displayName)
-                    .font(.subheadline)
-                Text(model.approximateSize)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            if downloadingModels.contains(model) {
-                ProgressView()
+                if downloadingModels.contains(selectedWhisperModel) {
+                    ProgressView()
+                        .controlSize(.small)
+                } else if downloadedModels.contains(selectedWhisperModel) {
+                    Button(action: {
+                        deleteModel(selectedWhisperModel)
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundStyle(.red)
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Delete model")
+                } else {
+                    Button("Download") {
+                        downloadModel(selectedWhisperModel)
+                    }
                     .controlSize(.small)
-                Text("Downloading...")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else if downloadedModels.contains(model) {
-                Label("Downloaded", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.green)
-
-                Button(action: {
-                    deleteModel(model)
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundStyle(.red)
                 }
-                .buttonStyle(.borderless)
-                .help("Delete model")
-            } else {
-                Button("Download") {
-                    downloadModel(model)
-                }
-                .font(.caption)
             }
-        }
-        .padding(.vertical, 4)
-    }
 
-    // MARK: - MLX Post-Processing Section
+            if let error = downloadError {
+                Label(error, systemImage: "exclamationmark.triangle")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
 
-    private var mlxPostProcessingSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Toggle("Enable AI Post-Processing", isOn: $whisperKitPostProcessEnabled)
+            Divider()
+                .padding(.vertical, 4)
+
+            // Post-Processing Toggle
+            Toggle("AI Post-Processing", isOn: $whisperKitPostProcessEnabled)
                 .font(.subheadline)
 
-            Text("Improves transcription formatting and punctuation using a local AI model (LLM).")
+            Text("Improves formatting and punctuation using a local AI model.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
             if whisperKitPostProcessEnabled {
-                Divider()
-                mlxModelSelectionView
-                Divider()
-                mlxDownloadedModelsView
+                // AI Model selection with status
+                HStack {
+                    Text("AI Model")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
 
-                Divider()
+                    Spacer()
 
-                // Important notice
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.shield.fill")
-                            .foregroundStyle(.green)
-                        Text("100% Private & Offline")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundStyle(.green)
+                    Picker("Model", selection: $selectedMLXModel) {
+                        ForEach(MLXService.Model.allCases, id: \.self) { model in
+                            Text("\(model.displayName) (\(model.approximateSize))").tag(model)
+                        }
                     }
-                    Text("All AI processing happens on your Mac. No data sent to any server.")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+
+                    if downloadingMLXModels.contains(selectedMLXModel) {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else if downloadedMLXModels.contains(selectedMLXModel) {
+                        Button(action: {
+                            deleteMLXModel(selectedMLXModel)
+                        }) {
+                            Image(systemName: "trash")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.borderless)
+                        .help("Delete model")
+                    } else {
+                        Button("Download") {
+                            downloadMLXModel(selectedMLXModel)
+                        }
+                        .controlSize(.small)
+                    }
                 }
             }
+
+            Divider()
+                .padding(.vertical, 4)
+
+            // Privacy notice
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.shield.fill")
+                    .foregroundStyle(.green)
+                Text("100% Private & Offline")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(.quaternary.opacity(0.3))
         .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-
-    private var mlxModelSelectionView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Local AI Model")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Picker("Model", selection: $selectedMLXModel) {
-                ForEach(MLXService.Model.allCases, id: \.self) { model in
-                    VStack(alignment: .leading) {
-                        Text(model.displayName)
-                        Text(model.approximateSize)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .tag(model)
-                }
-            }
-            .pickerStyle(.menu)
-
-            Text(selectedMLXModel.description)
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-    }
-
-    private var mlxDownloadedModelsView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Downloaded Models")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            ForEach(MLXService.Model.allCases, id: \.self) { model in
-                mlxModelRow(for: model)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func mlxModelRow(for model: MLXService.Model) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(model.displayName)
-                    .font(.subheadline)
-                Text(model.approximateSize)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            if downloadingMLXModels.contains(model) {
-                ProgressView()
-                    .controlSize(.small)
-                Text("Downloading...")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else if downloadedMLXModels.contains(model) {
-                Label("Downloaded", systemImage: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.green)
-
-                Button(action: {
-                    deleteMLXModel(model)
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundStyle(.red)
-                }
-                .buttonStyle(.borderless)
-                .help("Delete model")
-            } else {
-                Button("Download") {
-                    downloadMLXModel(model)
-                }
-                .font(.caption)
-            }
-        }
-        .padding(.vertical, 4)
     }
 
     // MARK: - Smart Paste Section
 
     private var smartPasteSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Smart Paste")
-                .font(.headline)
+            HStack {
+                Toggle("Smart Paste", isOn: $smartPasteEnabled)
+                    .font(.subheadline)
 
-            VStack(alignment: .leading, spacing: 12) {
-                Toggle("Automatically paste after transcription", isOn: $smartPasteEnabled)
+                Spacer()
 
-                Text("When enabled, VoiceScribe will automatically paste transcriptions into the app you were using.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                // Permission status
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        if hasAccessibilityPermission {
-                            Label("Accessibility permission granted", systemImage: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.green)
-                        } else {
-                            Label("Accessibility permission required", systemImage: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundStyle(.orange)
-                        }
+                if hasAccessibilityPermission {
+                    Label("Enabled", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                } else {
+                    Button(action: {
+                        PasteSimulator.shared.openAccessibilitySettings()
+                    }) {
+                        Label("Grant Access", systemImage: "lock.shield")
                     }
-
-                    if !hasAccessibilityPermission {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("To enable automatic paste, you need to grant VoiceScribe accessibility permission:")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("1. Click 'Open System Settings' below")
-                                Text("2. Find 'VoiceScribe' in the list")
-                                Text("3. Toggle it ON")
-                            }
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-
-                            Button(action: {
-                                PasteSimulator.shared.openAccessibilitySettings()
-                            }) {
-                                Label("Open System Settings", systemImage: "gear")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                        }
-                        .padding(.top, 4)
-                    }
+                    .controlSize(.small)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Text("Automatically paste transcriptions into the previous app.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - Keyboard Shortcut Section
 
     private var keyboardShortcutSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Keyboard Shortcut")
-                .font(.headline)
-
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Toggle Recording:")
-                        .font(.subheadline)
-                    Text("Default: ⌥⇧Space (Option-Shift-Space)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                KeyboardShortcuts.Recorder("", name: .toggleRecording)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Keyboard Shortcut")
+                    .font(.subheadline)
+                Text("Default: ⌥⇧Space")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Spacer()
+
+            KeyboardShortcuts.Recorder("", name: .toggleRecording)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - History Section
 
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("History")
-                .font(.headline)
-
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Number of transcriptions to keep:")
-                        .font(.subheadline)
-                    Text("Older transcriptions will be removed from the history view")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Picker("", selection: $historyLimit) {
-                    Text("10").tag(10)
-                    Text("25").tag(25)
-                    Text("50").tag(50)
-                    Text("100").tag(100)
-                }
-                .pickerStyle(.menu)
-                .frame(width: 80)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("History Limit")
+                    .font(.subheadline)
+                Text("Older transcriptions are automatically removed")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .padding()
-            .background(.quaternary.opacity(0.3))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Spacer()
+
+            Picker("", selection: $historyLimit) {
+                Text("10").tag(10)
+                Text("25").tag(25)
+                Text("50").tag(50)
+                Text("100").tag(100)
+            }
+            .pickerStyle(.menu)
+            .labelsHidden()
+            .frame(width: 80)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    // MARK: - Launch at Login Section
+
+    private var launchAtLoginSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Start at Login")
+                    .font(.subheadline)
+                Text("Automatically launch VoiceScribe when you log in")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: $launchAtLogin)
+                .labelsHidden()
+        }
+        .padding()
+        .background(.quaternary.opacity(0.3))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     // MARK: - Settings Management
@@ -805,11 +665,6 @@ struct SettingsView: View {
                 checkPermissionStatus()
             }
         }
-    }
-
-    private func stopPermissionCheckTimer() {
-        permissionCheckTask?.cancel()
-        permissionCheckTask = nil
     }
 }
 

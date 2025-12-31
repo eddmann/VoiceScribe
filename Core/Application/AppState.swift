@@ -6,6 +6,9 @@ import SwiftData
 @MainActor
 @Observable
 final class AppState {
+    /// Shared instance for global access (used by Settings scene)
+    static let shared = AppState()
+
     // MARK: - Services
     let audioRecorder = AudioRecorder()
     private(set) var availableServices: [any TranscriptionService] = []
