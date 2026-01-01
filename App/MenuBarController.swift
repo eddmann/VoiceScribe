@@ -139,9 +139,10 @@ final class MenuBarController: NSObject {
         }
 
         let screenFrame = screen.visibleFrame
-        let windowWidth: CGFloat = 360
-        let windowHeight: CGFloat = 52
-        let bottomPadding: CGFloat = 60
+        let shadowPadding: CGFloat = 24
+        let windowWidth: CGFloat = 360 + shadowPadding * 2
+        let windowHeight: CGFloat = 52 + shadowPadding * 2
+        let bottomPadding: CGFloat = 60 - shadowPadding  // Adjust for shadow space
 
         let x = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
         let y = screenFrame.origin.y + bottomPadding
@@ -157,8 +158,13 @@ final class MenuBarController: NSObject {
     }
 
     private func createRecordingWindow() -> NSWindow {
+        // Window is larger than content to accommodate shadow (radius: 10, y-offset: 4)
+        let shadowPadding: CGFloat = 24
+        let windowWidth: CGFloat = 360 + shadowPadding * 2
+        let windowHeight: CGFloat = 52 + shadowPadding * 2
+
         let window = KeyableWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 52),
+            contentRect: NSRect(x: 0, y: 0, width: windowWidth, height: windowHeight),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -166,16 +172,17 @@ final class MenuBarController: NSObject {
 
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.hasShadow = true
+        window.hasShadow = false
         window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 
         // Allow window to become key to receive keyboard events
         window.isMovableByWindowBackground = true
 
-        // Set content view with new floating bar
+        // Set content view with new floating bar - centered in larger window for shadow space
         let contentView = FloatingRecordBar()
             .environment(appState)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         window.contentView = NSHostingView(rootView: contentView)
 
