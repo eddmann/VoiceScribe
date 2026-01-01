@@ -3,6 +3,7 @@ import SwiftUI
 /// Compact floating recording bar with waveform visualization
 struct FloatingRecordBar: View {
     @Environment(AppState.self) private var appState
+    @FocusState private var isBarFocused: Bool
 
     var body: some View {
         HStack(spacing: 12) {
@@ -35,7 +36,18 @@ struct FloatingRecordBar: View {
         .clipShape(Capsule())
         .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 4)
         .focusable()
+        .focused($isBarFocused)
         .focusEffectDisabled()
+        .onAppear {
+            // Request focus after view is laid out to enable spacebar shortcut
+            DispatchQueue.main.async {
+                isBarFocused = true
+            }
+        }
+        .onKeyPress(.space) {
+            handleMainAction()
+            return .handled
+        }
     }
 
     private func handleMainAction() {
