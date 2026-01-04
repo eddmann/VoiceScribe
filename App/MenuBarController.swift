@@ -22,6 +22,8 @@ final class MenuBarController: NSObject {
     private let appState: AppState
     private let modelContainer: ModelContainer?
     private var eventMonitor: Any?
+    private var standardMenu: NSMenu?
+    private var extendedMenu: NSMenu?
 
     init(appState: AppState, modelContainer: ModelContainer? = nil) {
         self.appState = appState
@@ -52,11 +54,17 @@ final class MenuBarController: NSObject {
             button.image = image
         }
 
-        // Set action
+        // Handle both left and right clicks manually (no default menu)
         button.action = #selector(statusItemClicked)
         button.target = self
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
-        // Create menu
+        // Create both menus
+        standardMenu = createStandardMenu()
+        extendedMenu = createContextMenu()
+    }
+
+    private func createStandardMenu() -> NSMenu {
         let menu = NSMenu()
 
         // Record item
@@ -91,22 +99,41 @@ final class MenuBarController: NSObject {
         settingsItem.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Settings")
         menu.addItem(settingsItem)
 
+        return menu
+    }
+
+    private func createContextMenu() -> NSMenu {
+        let menu = NSMenu()
+
+        // Settings item
+        let settingsItem = NSMenuItem(title: "Settings", action: #selector(showSettings), keyEquivalent: "")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         menu.addItem(NSMenuItem.separator())
 
-        // Quit item
-        let quitItem = NSMenuItem(
-            title: "Quit VoiceScribe",
-            action: #selector(quit),
-            keyEquivalent: ""
-        )
+        // Quit item with ⌘Q shortcut
+        let quitItem = NSMenuItem(title: "Quit VoiceScribe", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 
-        statusItem?.menu = menu
+        return menu
     }
 
     @objc private func statusItemClicked() {
-        showRecordingWindow()
+        guard let event = NSApp.currentEvent else { return }
+
+        // Choose menu based on click type
+        let menuToShow = (event.type == .rightMouseUp) ? extendedMenu : standardMenu
+
+        // Assign menu, show it, then clear reference
+        statusItem?.menu = menuToShow
+        statusItem?.button?.performClick(nil)
+
+        // Clear menu reference so button action works next time
+        DispatchQueue.main.async { [weak self] in
+            self?.statusItem?.menu = nil
+        }
     }
 
     @objc func showRecordingWindow() {

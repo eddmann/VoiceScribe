@@ -268,8 +268,6 @@ private struct StatusArea: View {
 private struct DurationView: View {
     let startDate: Date?
 
-    @State private var duration: TimeInterval = 0
-
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.1)) { _ in
             Text(formattedDuration)
