@@ -72,7 +72,7 @@ final class MenuBarController: NSObject {
 
         // History item
         let historyItem = NSMenuItem(
-            title: "History...",
+            title: "History",
             action: #selector(showHistory),
             keyEquivalent: "h"
         )
@@ -81,7 +81,7 @@ final class MenuBarController: NSObject {
 
         // Settings item
         let settingsItem = NSMenuItem(
-            title: "Settings...",
+            title: "Settings",
             action: #selector(showSettings),
             keyEquivalent: ","
         )
