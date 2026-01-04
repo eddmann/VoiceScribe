@@ -66,6 +66,7 @@ final class MenuBarController: NSObject {
             keyEquivalent: ""
         )
         recordItem.target = self
+        recordItem.image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "Record")
         menu.addItem(recordItem)
 
         menu.addItem(NSMenuItem.separator())
@@ -74,25 +75,29 @@ final class MenuBarController: NSObject {
         let historyItem = NSMenuItem(
             title: "History",
             action: #selector(showHistory),
-            keyEquivalent: "h"
+            keyEquivalent: ""
         )
         historyItem.target = self
+        historyItem.image = NSImage(systemSymbolName: "clock", accessibilityDescription: "History")
         menu.addItem(historyItem)
 
         // Settings item
         let settingsItem = NSMenuItem(
             title: "Settings",
             action: #selector(showSettings),
-            keyEquivalent: ","
+            keyEquivalent: ""
         )
         settingsItem.target = self
+        settingsItem.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: "Settings")
         menu.addItem(settingsItem)
+
+        menu.addItem(NSMenuItem.separator())
 
         // Quit item
         let quitItem = NSMenuItem(
             title: "Quit VoiceScribe",
             action: #selector(quit),
-            keyEquivalent: "q"
+            keyEquivalent: ""
         )
         quitItem.target = self
         menu.addItem(quitItem)
