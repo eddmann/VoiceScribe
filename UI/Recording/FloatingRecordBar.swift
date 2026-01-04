@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 /// Compact floating recording bar with waveform visualization
@@ -226,7 +227,7 @@ private struct StatusArea: View {
 
     @ViewBuilder
     private func processingText(_ progress: String) -> some View {
-        // Show abbreviated processing status
+        // Show phase-aware processing status
         if progress.localizedCaseInsensitiveContains("post-processing") ||
            progress.localizedCaseInsensitiveContains("enhancing") {
             HStack(spacing: 4) {
@@ -237,10 +238,27 @@ private struct StatusArea: View {
                     .font(.system(size: 11, weight: .medium, design: .rounded))
             }
             .foregroundStyle(.orange)
+        } else if progress.localizedCaseInsensitiveContains("downloading") {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.down.circle")
+                    .font(.system(size: 10))
+                    .symbolEffect(.pulse, options: .repeating)
+                Text("DL")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+            }
+            .foregroundStyle(.orange)
+        } else if progress.localizedCaseInsensitiveContains("loading") {
+            HStack(spacing: 4) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 10))
+                    .symbolEffect(.pulse, options: .repeating)
+                Text("Load")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+            }
+            .foregroundStyle(.orange)
         } else {
-            Text("...")
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(.orange)
+            // Default and transcribing states use bouncing dots
+            BouncingDots()
         }
     }
 }
@@ -266,6 +284,28 @@ private struct DurationView: View {
         let minutes = Int(elapsed) / 60
         let seconds = Int(elapsed) % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+// MARK: - Bouncing Dots
+
+private struct BouncingDots: View {
+    @State private var phase = 0
+    let timer = Timer.publish(every: 0.2, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 4, height: 4)
+                    .offset(y: phase == index ? -3 : 0)
+                    .animation(.easeInOut(duration: 0.2), value: phase)
+            }
+        }
+        .onReceive(timer) { _ in
+            phase = (phase + 1) % 3
+        }
     }
 }
 
