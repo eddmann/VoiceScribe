@@ -1,6 +1,6 @@
 # VoiceScribe
 
-![VoiceScribe](README/heading.png)
+![VoiceScribe](docs/heading.png)
 
 Let your voice do the work.
 
@@ -21,30 +21,30 @@ Let your voice do the work.
 ### Recording Workflow
 
 <p align="center">
-  <img src="README/record-ready.png" width="260" alt="Recording window - Ready">
-  <img src="README/record-recording.png" width="260" alt="Recording window - Recording">
-  <img src="README/record-success.png" width="260" alt="Recording window - Success">
+  <img src="docs/record-ready.png" width="260" alt="Recording window - Ready">
+  <img src="docs/record-recording.png" width="260" alt="Recording window - Recording">
+  <img src="docs/record-success.png" width="260" alt="Recording window - Success">
 </p>
 
 ### History
 
-<img src="README/history.png" width="700" alt="History window with click-to-copy">
+<img src="docs/history.png" width="700" alt="History window with click-to-copy">
 
 ### Settings
 
 <p align="center">
-  <img src="README/settings-service-whisper.png" width="400" alt="Settings - WhisperKit Service">
-  <img src="README/settings-service-openai.png" width="400" alt="Settings - OpenAI Service">
+  <img src="docs/settings-service-whisper.png" width="400" alt="Settings - WhisperKit Service">
+  <img src="docs/settings-service-openai.png" width="400" alt="Settings - OpenAI Service">
 </p>
 
 <p align="center">
-  <img src="README/settings-service-whisper-post.png" width="400" alt="Settings - AI Post-Processing">
-  <img src="README/settings-preferences.png" width="400" alt="Settings - Preferences">
+  <img src="docs/settings-service-whisper-post.png" width="400" alt="Settings - AI Post-Processing">
+  <img src="docs/settings-preferences.png" width="400" alt="Settings - Preferences">
 </p>
 
 ### Menu Bar
 
-<img src="README/menu-bar.png" width="300" alt="VoiceScribe menu bar">
+<img src="docs/menu-bar.png" width="300" alt="VoiceScribe menu bar">
 
 ## Installation
 
