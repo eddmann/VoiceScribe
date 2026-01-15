@@ -18,8 +18,7 @@
 		688FC4D62EA563590010F082 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4B92EA563590010F082 /* AppState.swift */; };
 		688FC4D72EA563590010F082 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C92EA563590010F082 /* SettingsView.swift */; };
 		688FC4D82EA563590010F082 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C32EA563590010F082 /* OpenAIService.swift */; };
-		688FC4D92EA563590010F082 /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4BF2EA563590010F082 /* KeychainManager.swift */; };
-		A1B2C3E12EA563610010F082 /* FloatingRecordBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */; };
+		688FC4D92EA563590010F082 /* KeychainRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4BF2EA563590010F082 /* KeychainRepository.swift */; };
 		688FC4DB2EA563590010F082 /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4C22EA563590010F082 /* AudioRecorder.swift */; };
 		688FC4DC2EA563590010F082 /* TranscriptionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4BB2EA563590010F082 /* TranscriptionRecord.swift */; };
 		688FC4DD2EA563590010F082 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688FC4B62EA563590010F082 /* MenuBarController.swift */; };
@@ -33,7 +32,41 @@
 		A1B2C3D72EA563480010F082 /* MLXRandom in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D52EA563460010F082 /* MLXRandom */; };
 		A1B2C3D92EA5634A0010F082 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D82EA563490010F082 /* MLXLLM */; };
 		A1B2C3DB2EA5634C0010F082 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DA2EA5634B0010F082 /* MLXLMCommon */; };
+		A1B2C3E12EA563610010F082 /* FloatingRecordBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */; };
+		A1B2C3E22EA563600010F082 /* RecordingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E12EA563600010F082 /* RecordingState.swift */; };
+		A1B2C3E42EA563600010F082 /* KeychainRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E32EA563600010F082 /* KeychainRepositoryProtocol.swift */; };
+		A1B2C3EB2EA563600010F082 /* AudioRecordingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E62EA563600010F082 /* AudioRecordingClient.swift */; };
+		A1B2C3EC2EA563600010F082 /* AppFocusClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E72EA563600010F082 /* AppFocusClient.swift */; };
+		A1B2C3ED2EA563600010F082 /* PasteClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E82EA563600010F082 /* PasteClient.swift */; };
+		A1B2C3EE2EA563600010F082 /* ClipboardClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3E92EA563600010F082 /* ClipboardClient.swift */; };
+		A1B2C3EF2EA563600010F082 /* PasteboardClipboardClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3EA2EA563600010F082 /* PasteboardClipboardClient.swift */; };
+		B2F4D5A22EA7C00100000001 /* HistoryRepositoryProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5A12EA7C00100000001 /* HistoryRepositoryProtocol.swift */; };
+		B2F4D5A42EA7C00100000001 /* HistoryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5A32EA7C00100000001 /* HistoryRepository.swift */; };
+		B2F4D5B92EA7C10000000001 /* AudioRecordingClientSpy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B22EA7C10000000001 /* AudioRecordingClientSpy.swift */; };
+		B2F4D5BA2EA7C10000000001 /* AppFocusClientSpy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B32EA7C10000000001 /* AppFocusClientSpy.swift */; };
+		B2F4D5BB2EA7C10000000001 /* PasteClientSpy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B42EA7C10000000001 /* PasteClientSpy.swift */; };
+		B2F4D5BC2EA7C10000000001 /* ClipboardClientSpy.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B52EA7C10000000001 /* ClipboardClientSpy.swift */; };
+		B2F4D5BD2EA7C10000000001 /* HistoryRepositoryFake.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B62EA7C10000000001 /* HistoryRepositoryFake.swift */; };
+		B2F4D5BE2EA7C10000000001 /* TranscriptionServiceStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B72EA7C10000000001 /* TranscriptionServiceStub.swift */; };
+		B2F4D5BF2EA7C10000000001 /* KeychainRepositoryFake.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5B82EA7C10000000001 /* KeychainRepositoryFake.swift */; };
+		B2F4D5CB2EA7C20000000001 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B2F4D5CA2EA7C20000000001 /* XCTest.framework */; };
+		B2F4D5CC2EA7C20000000001 /* VoiceScribeErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4D5C82EA7C20000000001 /* VoiceScribeErrorTests.swift */; };
+		C1A2B3C42EA8000000000001 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C02EA8000000000001 /* AppStateTests.swift */; };
+		C1A2B3C52EA8000000000001 /* RecordingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C12EA8000000000001 /* RecordingStateTests.swift */; };
+		C1A2B3C62EA8000000000001 /* TestConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C22EA8000000000001 /* TestConstants.swift */; };
+		C1A2B3C72EA8000000000001 /* TestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1A2B3C32EA8000000000001 /* TestError.swift */; };
+		F00DBA5E2F5A000000000002 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00DBA5E2F5A000000000001 /* SettingsStore.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B2F4D5CD2EA7C20000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68491FAF2EA562C3003F79B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 68491FB62EA562C3003F79B2;
+			remoteInfo = VoiceScribe;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		68491FB72EA562C3003F79B2 /* VoiceScribe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VoiceScribe.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -44,17 +77,42 @@
 		688FC4BB2EA563590010F082 /* TranscriptionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionRecord.swift; sourceTree = "<group>"; };
 		688FC4BC2EA563590010F082 /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		688FC4BD2EA563590010F082 /* VoiceScribeError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceScribeError.swift; sourceTree = "<group>"; };
-		688FC4BF2EA563590010F082 /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		688FC4BF2EA563590010F082 /* KeychainRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainRepository.swift; sourceTree = "<group>"; };
 		688FC4C22EA563590010F082 /* AudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorder.swift; sourceTree = "<group>"; };
 		688FC4C32EA563590010F082 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
 		688FC4C42EA563590010F082 /* WhisperKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperKitService.swift; sourceTree = "<group>"; };
-		A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingRecordBar.swift; sourceTree = "<group>"; };
 		688FC4C92EA563590010F082 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		688FC4CC2EA563590010F082 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		688FC4E12EA563590010F082 /* AppFocusManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFocusManager.swift; sourceTree = "<group>"; };
 		688FC4E32EA563590010F082 /* PasteSimulator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteSimulator.swift; sourceTree = "<group>"; };
 		6E6E5C195E684FCF8EE41B0D /* MLXService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MLXService.swift; sourceTree = "<group>"; };
 		890d01bf660e4a958d04321b /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		A1B2C3E02EA563600010F082 /* FloatingRecordBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingRecordBar.swift; sourceTree = "<group>"; };
+		A1B2C3E12EA563600010F082 /* RecordingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingState.swift; sourceTree = "<group>"; };
+		A1B2C3E32EA563600010F082 /* KeychainRepositoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainRepositoryProtocol.swift; sourceTree = "<group>"; };
+		A1B2C3E62EA563600010F082 /* AudioRecordingClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingClient.swift; sourceTree = "<group>"; };
+		A1B2C3E72EA563600010F082 /* AppFocusClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFocusClient.swift; sourceTree = "<group>"; };
+		A1B2C3E82EA563600010F082 /* PasteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteClient.swift; sourceTree = "<group>"; };
+		A1B2C3E92EA563600010F082 /* ClipboardClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardClient.swift; sourceTree = "<group>"; };
+		A1B2C3EA2EA563600010F082 /* PasteboardClipboardClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardClipboardClient.swift; sourceTree = "<group>"; };
+		B2F4D5A12EA7C00100000001 /* HistoryRepositoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRepositoryProtocol.swift; sourceTree = "<group>"; };
+		B2F4D5A32EA7C00100000001 /* HistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRepository.swift; sourceTree = "<group>"; };
+		B2F4D5B22EA7C10000000001 /* AudioRecordingClientSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingClientSpy.swift; sourceTree = "<group>"; };
+		B2F4D5B32EA7C10000000001 /* AppFocusClientSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFocusClientSpy.swift; sourceTree = "<group>"; };
+		B2F4D5B42EA7C10000000001 /* PasteClientSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteClientSpy.swift; sourceTree = "<group>"; };
+		B2F4D5B52EA7C10000000001 /* ClipboardClientSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardClientSpy.swift; sourceTree = "<group>"; };
+		B2F4D5B62EA7C10000000001 /* HistoryRepositoryFake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRepositoryFake.swift; sourceTree = "<group>"; };
+		B2F4D5B72EA7C10000000001 /* TranscriptionServiceStub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionServiceStub.swift; sourceTree = "<group>"; };
+		B2F4D5B82EA7C10000000001 /* KeychainRepositoryFake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainRepositoryFake.swift; sourceTree = "<group>"; };
+		B2F4D5C72EA7C20000000001 /* VoiceScribeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VoiceScribeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B2F4D5C82EA7C20000000001 /* VoiceScribeErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceScribeErrorTests.swift; sourceTree = "<group>"; };
+		B2F4D5C92EA7C20000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B2F4D5CA2EA7C20000000001 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		C1A2B3C02EA8000000000001 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		C1A2B3C12EA8000000000001 /* RecordingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStateTests.swift; sourceTree = "<group>"; };
+		C1A2B3C22EA8000000000001 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
+		C1A2B3C32EA8000000000001 /* TestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestError.swift; sourceTree = "<group>"; };
+		F00DBA5E2F5A000000000001 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
 		F6B97F8102248886B550DDAD /* HiddenWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiddenWindowView.swift; sourceTree = "<group>"; };
 		f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+RelativeTime.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -73,19 +131,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B2F4D5C52EA7C20000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B2F4D5CB2EA7C20000000001 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		68491FAE2EA562C3003F79B2 = {
 			isa = PBXGroup;
 			children = (
+				D1E2F3A42EA9000000000001 /* VoiceScribe */,
+				B2F4D5CF2EA7C20000000001 /* VoiceScribeTests */,
 				68491FB82EA562C3003F79B2 /* Products */,
-				688FC4B82EA563590010F082 /* App */,
-				688FC4C12EA563590010F082 /* Core */,
-				688FC4C52EA563590010F082 /* Services */,
-				688FC4C62EA563590010F082 /* Shared */,
-				688FC4CB2EA563590010F082 /* UI */,
-				688FC4CC2EA563590010F082 /* Assets.xcassets */,
+				B2F4D5D02EA7C20000000001 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -93,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				68491FB72EA562C3003F79B2 /* VoiceScribe.app */,
+				B2F4D5C72EA7C20000000001 /* VoiceScribeTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,6 +164,8 @@
 		688FC4B82EA563590010F082 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				688FC4B92EA563590010F082 /* AppState.swift */,
+				F00DBA5E2F5A000000000001 /* SettingsStore.swift */,
 				688FC4B52EA563590010F082 /* HotkeyManager.swift */,
 				688FC4B62EA563590010F082 /* MenuBarController.swift */,
 				688FC4B72EA563590010F082 /* VoiceScribeApp.swift */,
@@ -107,41 +173,37 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		688FC4BA2EA563590010F082 /* Application */ = {
+		688FC4BA2EA563590010F082 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				688FC4B92EA563590010F082 /* AppState.swift */,
+				A1B2C3E62EA563600010F082 /* AudioRecordingClient.swift */,
+				A1B2C3E72EA563600010F082 /* AppFocusClient.swift */,
+				A1B2C3E92EA563600010F082 /* ClipboardClient.swift */,
+				A1B2C3E82EA563600010F082 /* PasteClient.swift */,
+				688FC4BC2EA563590010F082 /* TranscriptionService.swift */,
 			);
-			path = Application;
+			path = Protocols;
 			sourceTree = "<group>";
 		};
-		688FC4BE2EA563590010F082 /* Domain */ = {
+		688FC4C02EA563590010F082 /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				B2F4D5A32EA7C00100000001 /* HistoryRepository.swift */,
+				688FC4BF2EA563590010F082 /* KeychainRepository.swift */,
+				A1B2C3E52EA563600010F082 /* Protocols */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		688FC4C12EA563590010F082 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */,
 				688FC4BB2EA563590010F082 /* TranscriptionRecord.swift */,
-				688FC4BC2EA563590010F082 /* TranscriptionService.swift */,
+				A1B2C3E12EA563600010F082 /* RecordingState.swift */,
 				688FC4BD2EA563590010F082 /* VoiceScribeError.swift */,
 			);
-			path = Domain;
-			sourceTree = "<group>";
-		};
-		688FC4C02EA563590010F082 /* Infrastructure */ = {
-			isa = PBXGroup;
-			children = (
-				688FC4BF2EA563590010F082 /* KeychainManager.swift */,
-			);
-			path = Infrastructure;
-			sourceTree = "<group>";
-		};
-		688FC4C12EA563590010F082 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-				688FC4BA2EA563590010F082 /* Application */,
-				688FC4BE2EA563590010F082 /* Domain */,
-				688FC4C02EA563590010F082 /* Infrastructure */,
-			);
-			path = Core;
+			path = Models;
 			sourceTree = "<group>";
 		};
 		688FC4C52EA563590010F082 /* Services */ = {
@@ -151,7 +213,9 @@
 				688FC4C22EA563590010F082 /* AudioRecorder.swift */,
 				6E6E5C195E684FCF8EE41B0D /* MLXService.swift */,
 				688FC4C32EA563590010F082 /* OpenAIService.swift */,
+				A1B2C3EA2EA563600010F082 /* PasteboardClipboardClient.swift */,
 				688FC4E32EA563590010F082 /* PasteSimulator.swift */,
+				688FC4BA2EA563590010F082 /* Protocols */,
 				688FC4C42EA563590010F082 /* WhisperKitService.swift */,
 			);
 			path = Services;
@@ -180,7 +244,7 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		688FC4CB2EA563590010F082 /* UI */ = {
+		688FC4CB2EA563590010F082 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				688FC4CE2EA563590010F082 /* History */,
@@ -188,7 +252,7 @@
 				688FC4CA2EA563590010F082 /* Settings */,
 				91CB001D6614E028CD622FAB /* Utility */,
 			);
-			path = UI;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		688FC4CE2EA563590010F082 /* History */ = {
@@ -205,6 +269,73 @@
 				F6B97F8102248886B550DDAD /* HiddenWindowView.swift */,
 			);
 			path = Utility;
+			sourceTree = "<group>";
+		};
+		A1B2C3E52EA563600010F082 /* Protocols */ = {
+			isa = PBXGroup;
+			children = (
+				B2F4D5A12EA7C00100000001 /* HistoryRepositoryProtocol.swift */,
+				A1B2C3E32EA563600010F082 /* KeychainRepositoryProtocol.swift */,
+			);
+			path = Protocols;
+			sourceTree = "<group>";
+		};
+		B2F4D5B02EA7C10000000001 /* TestSupport */ = {
+			isa = PBXGroup;
+			children = (
+				C1A2B3C22EA8000000000001 /* TestConstants.swift */,
+				C1A2B3C32EA8000000000001 /* TestError.swift */,
+			);
+			path = TestSupport;
+			sourceTree = "<group>";
+		};
+		B2F4D5B12EA7C10000000001 /* TestDoubles */ = {
+			isa = PBXGroup;
+			children = (
+				B2F4D5B22EA7C10000000001 /* AudioRecordingClientSpy.swift */,
+				B2F4D5B32EA7C10000000001 /* AppFocusClientSpy.swift */,
+				B2F4D5B42EA7C10000000001 /* PasteClientSpy.swift */,
+				B2F4D5B52EA7C10000000001 /* ClipboardClientSpy.swift */,
+				B2F4D5B62EA7C10000000001 /* HistoryRepositoryFake.swift */,
+				B2F4D5B72EA7C10000000001 /* TranscriptionServiceStub.swift */,
+				B2F4D5B82EA7C10000000001 /* KeychainRepositoryFake.swift */,
+			);
+			path = TestDoubles;
+			sourceTree = "<group>";
+		};
+		B2F4D5CF2EA7C20000000001 /* VoiceScribeTests */ = {
+			isa = PBXGroup;
+			children = (
+				C1A2B3C02EA8000000000001 /* AppStateTests.swift */,
+				C1A2B3C12EA8000000000001 /* RecordingStateTests.swift */,
+				B2F4D5C82EA7C20000000001 /* VoiceScribeErrorTests.swift */,
+				B2F4D5C92EA7C20000000001 /* Info.plist */,
+				B2F4D5B12EA7C10000000001 /* TestDoubles */,
+				B2F4D5B02EA7C10000000001 /* TestSupport */,
+			);
+			path = VoiceScribeTests;
+			sourceTree = "<group>";
+		};
+		B2F4D5D02EA7C20000000001 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B2F4D5CA2EA7C20000000001 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D1E2F3A42EA9000000000001 /* VoiceScribe */ = {
+			isa = PBXGroup;
+			children = (
+				688FC4B82EA563590010F082 /* App */,
+				688FC4C12EA563590010F082 /* Models */,
+				688FC4C02EA563590010F082 /* Repositories */,
+				688FC4C52EA563590010F082 /* Services */,
+				688FC4C62EA563590010F082 /* Shared */,
+				688FC4CB2EA563590010F082 /* Views */,
+				688FC4CC2EA563590010F082 /* Assets.xcassets */,
+			);
+			path = VoiceScribe;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -235,6 +366,24 @@
 			productReference = 68491FB72EA562C3003F79B2 /* VoiceScribe.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B2F4D5C02EA7C20000000001 /* VoiceScribeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B2F4D5C12EA7C20000000001 /* Build configuration list for PBXNativeTarget "VoiceScribeTests" */;
+			buildPhases = (
+				B2F4D5C42EA7C20000000001 /* Sources */,
+				B2F4D5C52EA7C20000000001 /* Frameworks */,
+				B2F4D5C62EA7C20000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B2F4D5CE2EA7C20000000001 /* PBXTargetDependency */,
+			);
+			name = VoiceScribeTests;
+			productName = VoiceScribeTests;
+			productReference = B2F4D5C72EA7C20000000001 /* VoiceScribeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -247,6 +396,10 @@
 				TargetAttributes = {
 					68491FB62EA562C3003F79B2 = {
 						CreatedOnToolsVersion = 26.0.1;
+					};
+					B2F4D5C02EA7C20000000001 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 68491FB62EA562C3003F79B2;
 					};
 				};
 			};
@@ -270,6 +423,7 @@
 			projectRoot = "";
 			targets = (
 				68491FB62EA562C3003F79B2 /* VoiceScribe */,
+				B2F4D5C02EA7C20000000001 /* VoiceScribeTests */,
 			);
 		};
 /* End PBXProject section */
@@ -280,6 +434,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				688FC4D02EA563590010F082 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B2F4D5C62EA7C20000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,13 +455,23 @@
 				688FC4D32EA563590010F082 /* WhisperKitService.swift in Sources */,
 				688FC4D42EA563590010F082 /* TranscriptionService.swift in Sources */,
 				688FC4D62EA563590010F082 /* AppState.swift in Sources */,
+				F00DBA5E2F5A000000000002 /* SettingsStore.swift in Sources */,
 				688FC4D72EA563590010F082 /* SettingsView.swift in Sources */,
 				688FC4D82EA563590010F082 /* OpenAIService.swift in Sources */,
 				985AC248CCA44A1F9E0696B3 /* MLXService.swift in Sources */,
-				688FC4D92EA563590010F082 /* KeychainManager.swift in Sources */,
-					A1B2C3E12EA563610010F082 /* FloatingRecordBar.swift in Sources */,
+				688FC4D92EA563590010F082 /* KeychainRepository.swift in Sources */,
+				B2F4D5A42EA7C00100000001 /* HistoryRepository.swift in Sources */,
+				A1B2C3E42EA563600010F082 /* KeychainRepositoryProtocol.swift in Sources */,
+				B2F4D5A22EA7C00100000001 /* HistoryRepositoryProtocol.swift in Sources */,
+				A1B2C3E12EA563610010F082 /* FloatingRecordBar.swift in Sources */,
+				A1B2C3EB2EA563600010F082 /* AudioRecordingClient.swift in Sources */,
+				A1B2C3EC2EA563600010F082 /* AppFocusClient.swift in Sources */,
+				A1B2C3EE2EA563600010F082 /* ClipboardClient.swift in Sources */,
+				A1B2C3ED2EA563600010F082 /* PasteClient.swift in Sources */,
+				A1B2C3EF2EA563600010F082 /* PasteboardClipboardClient.swift in Sources */,
 				688FC4DB2EA563590010F082 /* AudioRecorder.swift in Sources */,
 				688FC4DC2EA563590010F082 /* TranscriptionRecord.swift in Sources */,
+				A1B2C3E22EA563600010F082 /* RecordingState.swift in Sources */,
 				688FC4DD2EA563590010F082 /* MenuBarController.swift in Sources */,
 				688FC4DE2EA563590010F082 /* HotkeyManager.swift in Sources */,
 				688FC4DF2EA563590010F082 /* VoiceScribeError.swift in Sources */,
@@ -312,7 +483,34 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B2F4D5C42EA7C20000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1A2B3C42EA8000000000001 /* AppStateTests.swift in Sources */,
+				C1A2B3C52EA8000000000001 /* RecordingStateTests.swift in Sources */,
+				B2F4D5CC2EA7C20000000001 /* VoiceScribeErrorTests.swift in Sources */,
+				C1A2B3C62EA8000000000001 /* TestConstants.swift in Sources */,
+				C1A2B3C72EA8000000000001 /* TestError.swift in Sources */,
+				B2F4D5B92EA7C10000000001 /* AudioRecordingClientSpy.swift in Sources */,
+				B2F4D5BA2EA7C10000000001 /* AppFocusClientSpy.swift in Sources */,
+				B2F4D5BB2EA7C10000000001 /* PasteClientSpy.swift in Sources */,
+				B2F4D5BC2EA7C10000000001 /* ClipboardClientSpy.swift in Sources */,
+				B2F4D5BD2EA7C10000000001 /* HistoryRepositoryFake.swift in Sources */,
+				B2F4D5BE2EA7C10000000001 /* TranscriptionServiceStub.swift in Sources */,
+				B2F4D5BF2EA7C10000000001 /* KeychainRepositoryFake.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B2F4D5CE2EA7C20000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 68491FB62EA562C3003F79B2 /* VoiceScribe */;
+			targetProxy = B2F4D5CD2EA7C20000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		68491FC22EA562C4003F79B2 /* Debug */ = {
@@ -349,6 +547,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = ANGUD7343N;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -374,6 +573,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
@@ -414,6 +614,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = ANGUD7343N;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -432,6 +633,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 6.0;
 			};
@@ -442,15 +644,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = VoiceScribe.entitlements;
+				CODE_SIGN_ENTITLEMENTS = VoiceScribe/VoiceScribe.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = ANGUD7343N;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "VoiceScribe needs accessibility permission to automatically paste transcriptions into your apps.";
@@ -478,15 +683,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = VoiceScribe.entitlements;
+				CODE_SIGN_ENTITLEMENTS = VoiceScribe/VoiceScribe.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = ANGUD7343N;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "VoiceScribe needs accessibility permission to automatically paste transcriptions into your apps.";
@@ -509,6 +717,56 @@
 			};
 			name = Release;
 		};
+		B2F4D5C22EA7C20000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = ANGUD7343N;
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VoiceScribeTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eddmann.VoiceScribeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VoiceScribe.app/Contents/MacOS/VoiceScribe";
+			};
+			name = Debug;
+		};
+		B2F4D5C32EA7C20000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = ANGUD7343N;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = VoiceScribeTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.eddmann.VoiceScribeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VoiceScribe.app/Contents/MacOS/VoiceScribe";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -526,6 +784,15 @@
 			buildConfigurations = (
 				68491FC52EA562C4003F79B2 /* Debug */,
 				68491FC62EA562C4003F79B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B2F4D5C12EA7C20000000001 /* Build configuration list for PBXNativeTarget "VoiceScribeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B2F4D5C22EA7C20000000001 /* Debug */,
+				B2F4D5C32EA7C20000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
