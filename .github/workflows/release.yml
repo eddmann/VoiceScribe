@@ -2,11 +2,6 @@ name: Release VoiceScribe
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number (e.g., 1.0.0)'
-        required: true
-        type: string
 
 jobs:
   build-and-release:
@@ -18,6 +13,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Extract version from changelog
+        id: version
+        run: |
+          VERSION=$(sed -n 's/^## \[\([^]]*\)\].*/\1/p' CHANGELOG.md | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          CONTENT=$(awk '
+            /^## \[/ {
+              if (found) exit
+              found=1
+              next
+            }
+            found { print }
+          ' CHANGELOG.md)
+
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -26,13 +43,13 @@ jobs:
       - name: Update version in project
         run: |
           # Update MARKETING_VERSION in project.pbxproj
-          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${{ inputs.version }}/g" VoiceScribe.xcodeproj/project.pbxproj
+          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${{ steps.version.outputs.version }}/g" VoiceScribe.xcodeproj/project.pbxproj
 
           # Extract major version number for CURRENT_PROJECT_VERSION (e.g., 1.0.0 -> 1)
-          BUILD_NUMBER=$(echo "${{ inputs.version }}" | sed 's/[^0-9]*\([0-9]*\).*/\1/')
+          BUILD_NUMBER=$(echo "${{ steps.version.outputs.version }}" | sed 's/[^0-9]*\([0-9]*\).*/\1/')
           sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = $BUILD_NUMBER/g" VoiceScribe.xcodeproj/project.pbxproj
 
-          echo "Updated version to ${{ inputs.version }} (build $BUILD_NUMBER)"
+          echo "Updated version to ${{ steps.version.outputs.version }} (build $BUILD_NUMBER)"
 
       - name: Install Apple certificate
         env:
@@ -136,47 +153,15 @@ jobs:
           cd build/Build/Products/Release
           xattr -cr VoiceScribe.app
           find VoiceScribe.app -name '._*' -delete
-          zip -r ../../../../VoiceScribe-${{ inputs.version }}.zip VoiceScribe.app
+          zip -r ../../../../VoiceScribe-${{ steps.version.outputs.version }}.zip VoiceScribe.app
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: VoiceScribe v${{ inputs.version }}
-          body: |
-            ## VoiceScribe v${{ inputs.version }}
-
-            ### Installation
-
-            1. Download `VoiceScribe-${{ inputs.version }}.zip`
-            2. Unzip and move `VoiceScribe.app` to Applications
-            3. Double-click to open
-
-            This release is **signed and notarized** by Apple.
-
-            ### Features
-
-            - **Global hotkey recording** - Press Option-Shift-Space to record from anywhere (customizable)
-            - **Dual transcription engines** - Choose between privacy-focused local [WhisperKit](https://github.com/argmaxinc/WhisperKit) (on-device, Apple Silicon only) or cloud-based OpenAI Transcription
-            - **Multiple AI models** - Download and switch between WhisperKit models (Base/Small/Medium) or select OpenAI models (Whisper V2/GPT-4o/GPT-4o Mini)
-            - **AI-powered enhancement** - Optional post-processing to add perfect punctuation, capitalization, and formatting
-            - **Smart paste** - Transcriptions paste directly into your active app
-            - **Transcription history** - Review past transcriptions anytime
-            - **Secure storage** - API keys encrypted in macOS Keychain
-
-            ### Requirements
-
-            - macOS 14.0 (Sonoma) or later
-            - Apple Silicon (M-series) Mac for local WhisperKit transcription and MLX enhancement
-            - Intel Macs supported with OpenAI Transcription API
-
-            ### Privacy
-
-            - All audio processing happens on-device with [WhisperKit](https://github.com/argmaxinc/WhisperKit) (no network transmission)
-            - OpenAI mode sends audio to their servers - review [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy)
-            - API keys encrypted in macOS Keychain with device-only access
-            - No telemetry or analytics
-          files: VoiceScribe-${{ inputs.version }}.zip
+          tag_name: v${{ steps.version.outputs.version }}
+          name: VoiceScribe v${{ steps.version.outputs.version }}
+          body: ${{ steps.changelog.outputs.content }}
+          files: VoiceScribe-${{ steps.version.outputs.version }}.zip
           draft: false
           prerelease: false
         env:
@@ -186,18 +171,18 @@ jobs:
         env:
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          SHA=$(shasum -a 256 VoiceScribe-${{ inputs.version }}.zip | cut -d' ' -f1)
+          SHA=$(shasum -a 256 VoiceScribe-${{ steps.version.outputs.version }}.zip | cut -d' ' -f1)
 
           git clone https://x-access-token:${TAP_TOKEN}@github.com/eddmann/homebrew-tap.git
           cd homebrew-tap
 
-          sed -i '' "s/version \".*\"/version \"${{ inputs.version }}\"/" Casks/voicescribe.rb
+          sed -i '' "s/version \".*\"/version \"${{ steps.version.outputs.version }}\"/" Casks/voicescribe.rb
           sed -i '' "s/sha256 \".*\"/sha256 \"${SHA}\"/" Casks/voicescribe.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Casks/voicescribe.rb
-          git commit -m "chore(voicescribe): update to ${{ inputs.version }}"
+          git commit -m "chore(voicescribe): update to ${{ steps.version.outputs.version }}"
           git push
 
       - name: Cleanup keychain
