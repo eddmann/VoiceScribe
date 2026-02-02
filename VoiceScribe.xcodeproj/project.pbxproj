@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		22329D6FBB05702461761C78 /* DemoMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE321B63E1F514832A361DE6 /* DemoMode.swift */; };
+		2A3160E19BD851C678EA0473 /* DemoDataFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFEF2C8498F6C1E5FDADF17B /* DemoDataFactory.swift */; };
 		4BB56399DE3B1A0C6BA84EF4 /* HiddenWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B97F8102248886B550DDAD /* HiddenWindowView.swift */; };
 		5a6ee497cf8c49b78e30153f /* Date+RelativeTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = f30e8fa27e314cbb9c51dada /* Date+RelativeTime.swift */; };
 		688FC48D2EA563180010F082 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 688FC48C2EA563180010F082 /* WhisperKit */; };
@@ -95,6 +97,7 @@
 		A1B2C3E82EA563600010F082 /* PasteClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteClient.swift; sourceTree = "<group>"; };
 		A1B2C3E92EA563600010F082 /* ClipboardClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardClient.swift; sourceTree = "<group>"; };
 		A1B2C3EA2EA563600010F082 /* PasteboardClipboardClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardClipboardClient.swift; sourceTree = "<group>"; };
+		AFEF2C8498F6C1E5FDADF17B /* DemoDataFactory.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceScribe/Utilities/DemoDataFactory.swift; sourceTree = SOURCE_ROOT; };
 		B2F4D5A12EA7C00100000001 /* HistoryRepositoryProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRepositoryProtocol.swift; sourceTree = "<group>"; };
 		B2F4D5A32EA7C00100000001 /* HistoryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryRepository.swift; sourceTree = "<group>"; };
 		B2F4D5B22EA7C10000000001 /* AudioRecordingClientSpy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingClientSpy.swift; sourceTree = "<group>"; };
@@ -108,6 +111,7 @@
 		B2F4D5C82EA7C20000000001 /* VoiceScribeErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceScribeErrorTests.swift; sourceTree = "<group>"; };
 		B2F4D5C92EA7C20000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B2F4D5CA2EA7C20000000001 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
+		BE321B63E1F514832A361DE6 /* DemoMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceScribe/Utilities/DemoMode.swift; sourceTree = SOURCE_ROOT; };
 		C1A2B3C02EA8000000000001 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
 		C1A2B3C12EA8000000000001 /* RecordingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStateTests.swift; sourceTree = "<group>"; };
 		C1A2B3C22EA8000000000001 /* TestConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestConstants.swift; sourceTree = "<group>"; };
@@ -263,6 +267,16 @@
 			path = History;
 			sourceTree = "<group>";
 		};
+		874FDF193C1F0ACACAC7DE84 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				BE321B63E1F514832A361DE6 /* DemoMode.swift */,
+				AFEF2C8498F6C1E5FDADF17B /* DemoDataFactory.swift */,
+			);
+			name = Utilities;
+			path = VoiceScribe/Utilities;
+			sourceTree = SOURCE_ROOT;
+		};
 		91CB001D6614E028CD622FAB /* Utility */ = {
 			isa = PBXGroup;
 			children = (
@@ -334,6 +348,7 @@
 				688FC4C62EA563590010F082 /* Shared */,
 				688FC4CB2EA563590010F082 /* Views */,
 				688FC4CC2EA563590010F082 /* Assets.xcassets */,
+				874FDF193C1F0ACACAC7DE84 /* Utilities */,
 			);
 			path = VoiceScribe;
 			sourceTree = "<group>";
@@ -480,6 +495,8 @@
 				701843d9b6cd4807bc3f7a3a /* HistoryView.swift in Sources */,
 				5a6ee497cf8c49b78e30153f /* Date+RelativeTime.swift in Sources */,
 				4BB56399DE3B1A0C6BA84EF4 /* HiddenWindowView.swift in Sources */,
+				22329D6FBB05702461761C78 /* DemoMode.swift in Sources */,
+				2A3160E19BD851C678EA0473 /* DemoDataFactory.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

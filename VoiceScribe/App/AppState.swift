@@ -404,7 +404,43 @@ final class AppState {
             }
         }
     }
+
+    // MARK: - Demo Mode Setters
+
+    #if DEBUG
+    func setDemoRecordingState(_ state: RecordingState) {
+        recordingState = state
+    }
+
+    func setDemoAudioLevelHistory(_ history: [Float]) {
+        audioLevelHistory = history
+    }
+
+    func setDemoRecordingStartDate(_ date: Date?) {
+        recordingStartDate = date
+    }
+    #endif
 }
+
+// MARK: - Demo Mode
+
+#if DEBUG
+extension AppState {
+    /// Applies demo state for App Store screenshots.
+    /// Skips normal recording flow and sets state directly.
+    func applyDemoState(
+        recordingState: RecordingState,
+        audioLevelHistory: [Float]? = nil,
+        recordingStartDate: Date? = nil
+    ) {
+        setDemoRecordingState(recordingState)
+        if let history = audioLevelHistory {
+            setDemoAudioLevelHistory(history)
+        }
+        setDemoRecordingStartDate(recordingStartDate)
+    }
+}
+#endif
 
 // MARK: - Notification Names
 extension Notification.Name {

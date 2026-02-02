@@ -21,30 +21,23 @@ Let your voice do the work.
 ### Recording Workflow
 
 <p align="center">
-  <img src="docs/record-ready.png" width="260" alt="Recording window - Ready">
-  <img src="docs/record-recording.png" width="260" alt="Recording window - Recording">
-  <img src="docs/record-success.png" width="260" alt="Recording window - Success">
+  <img src="docs/record-ready.png" width="200" alt="Recording window - Ready">
+  <img src="docs/record-recording.png" width="200" alt="Recording window - Recording">
+  <img src="docs/record-processing.png" width="200" alt="Recording window - Processing">
+  <img src="docs/record-success.png" width="200" alt="Recording window - Success">
 </p>
 
 ### History
 
-<img src="docs/history.png" width="700" alt="History window with click-to-copy">
+<img src="docs/history.png" width="700" alt="History window with transcriptions">
 
 ### Settings
 
 <p align="center">
-  <img src="docs/settings-service-whisper.png" width="400" alt="Settings - WhisperKit Service">
-  <img src="docs/settings-service-openai.png" width="400" alt="Settings - OpenAI Service">
+  <img src="docs/settings-service-whisper.png" width="280" alt="Settings - WhisperKit Service">
+  <img src="docs/settings-service-openai.png" width="280" alt="Settings - OpenAI Service">
+  <img src="docs/settings-preferences.png" width="280" alt="Settings - Preferences">
 </p>
-
-<p align="center">
-  <img src="docs/settings-service-whisper-post.png" width="400" alt="Settings - AI Post-Processing">
-  <img src="docs/settings-preferences.png" width="400" alt="Settings - Preferences">
-</p>
-
-### Menu Bar
-
-<img src="docs/menu-bar.png" width="300" alt="VoiceScribe menu bar">
 
 ## Installation
 
@@ -91,18 +84,21 @@ The app is signed and notarized by Apple, so it will open without any security w
 VoiceScribe gives you full control over your data:
 
 ### Local Mode (WhisperKit + MLX)
+
 - 100% private - All transcription and AI enhancement happens on-device
 - No network transmission - Your audio and text never leave your Mac
 - Ideal for sensitive content - Perfect for lawyers, doctors, journalists, and anyone handling confidential information
 - Free - No API costs
 
 ### Cloud Mode (OpenAI)
+
 - Audio transmission - Audio files sent to OpenAI servers for transcription
 - Optional text enhancement - If post-processing enabled, transcribed text sent to OpenAI for formatting
 - API costs - Approximately $0.006-0.024/minute for transcription, ~$0.004 additional if enhancement enabled
 - Review [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy) for details
 
 ### Security Features
+
 - API keys encrypted in macOS Keychain with device-only access
 - Audio files stored in temporary directory and automatically deleted after transcription
 - Transcription history stored locally with SwiftData

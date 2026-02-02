@@ -30,10 +30,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var menuBarController: MenuBarController?
     let hotkeyManager = HotkeyManager.shared
 
+    #if DEBUG
+    private var demoMode: DemoMode?
+    #endif
+
     // Create model container
     private lazy var modelContainer: ModelContainer = {
         let schema = Schema([TranscriptionRecord.self])
-        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
+        #if DEBUG
+        // Use in-memory storage for demo modes to avoid polluting real data
+        let isInMemory = demoMode != nil
+        #else
+        let isInMemory = false
+        #endif
+
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isInMemory)
 
         do {
             let container = try ModelContainer(for: schema, configurations: [configuration])
@@ -45,6 +57,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        demoMode = DemoMode.fromArguments()
+        #endif
+
         // Initialize model container (triggers lazy initialization)
         _ = modelContainer
 
@@ -54,6 +70,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Setup menu bar with shared model container
         menuBarController = MenuBarController(appState: appState, modelContainer: modelContainer)
 
+        #if DEBUG
+        if let demoMode {
+            configureDemoMode(demoMode)
+            return
+        }
+        #endif
+
+        // Normal startup flow
         // Setup global hotkey
         hotkeyManager.startListening { [weak self] in
             self?.menuBarController?.showRecordingWindow()
@@ -62,4 +86,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Cleanup old recordings on launch
         AudioRecorder.cleanupOldRecordings()
     }
+
+    #if DEBUG
+    private func configureDemoMode(_ mode: DemoMode) {
+        // Configure app state for the demo mode
+        DemoDataFactory.configure(appState, for: mode)
+
+        // Populate history if needed
+        if mode == .historyPopulated {
+            DemoDataFactory.populateHistory(context: modelContainer.mainContext)
+        }
+
+        // Show appropriate window
+        if mode.showsHistoryWindow {
+            menuBarController?.showHistory()
+        } else {
+            menuBarController?.showRecordingWindowForDemo()
+        }
+    }
+    #endif
 }

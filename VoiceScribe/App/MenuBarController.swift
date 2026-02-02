@@ -326,6 +326,27 @@ final class MenuBarController: NSObject {
         }
         recordingWindow?.orderOut(nil)
     }
+
+    #if DEBUG
+    /// Shows recording window for demo mode without capturing previous app.
+    /// Used for App Store screenshots.
+    func showRecordingWindowForDemo() {
+        // Create recording window if needed (skip previous app capture)
+        if recordingWindow == nil {
+            recordingWindow = createRecordingWindow()
+        }
+
+        guard let window = recordingWindow else { return }
+
+        // Position at bottom center of screen
+        positionWindowAtBottomCenter(window)
+        window.makeKeyAndOrderFront(nil)
+
+        // Activate app
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeFirstResponder(window.contentView)
+    }
+    #endif
 }
 
 // MARK: - NSWindowDelegate
