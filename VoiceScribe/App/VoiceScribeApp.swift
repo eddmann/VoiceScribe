@@ -80,7 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Normal startup flow
         // Setup global hotkey
         hotkeyManager.startListening { [weak self] in
-            self?.menuBarController?.showRecordingWindow()
+            self?.menuBarController?.handleGlobalRecordingShortcut()
         }
 
         // Cleanup old recordings on launch

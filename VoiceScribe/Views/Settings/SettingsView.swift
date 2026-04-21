@@ -423,18 +423,23 @@ struct SettingsView: View {
     // MARK: - Keyboard Shortcut Section
 
     private var keyboardShortcutSection: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Keyboard Shortcut")
-                    .font(.subheadline)
-                Text("Default: ⌥⇧Space")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Keyboard Shortcut")
+                        .font(.subheadline)
+                    Text("Default: ⌥⇧Space")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                KeyboardShortcuts.Recorder("", name: .toggleRecording)
             }
 
-            Spacer()
-
-            KeyboardShortcuts.Recorder("", name: .toggleRecording)
+            Toggle("Start Recording Immediately", isOn: $settings.autoStartRecordingFromShortcut)
+                .font(.subheadline)
         }
         .padding()
         .background(.quaternary.opacity(0.3))

@@ -145,6 +145,42 @@ final class MenuBarController: NSObject {
             return
         }
 
+        presentRecordingWindow()
+    }
+
+    func handleGlobalRecordingShortcut() {
+        guard SettingsStore.shared.autoStartRecordingFromShortcut else {
+            showRecordingWindow()
+            return
+        }
+
+        switch appState.recordingState {
+        case .idle, .completed, .error:
+            presentRecordingWindow()
+        case .recording, .processing:
+            break
+        }
+
+        Task { @MainActor in
+            switch appState.recordingState {
+            case .idle, .completed, .error:
+                await appState.startRecording()
+            case .recording:
+                await appState.stopRecording()
+            case .processing:
+                await appState.cancelActiveWork()
+            }
+        }
+    }
+
+    private func presentRecordingWindow() {
+        if let window = recordingWindow, window.isVisible {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(window.contentView)
+            return
+        }
+
         // Capture the current frontmost app before showing VoiceScribe
         // This enables smart paste functionality
         AppFocusManager.shared.capturePreviousApplication()

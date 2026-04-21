@@ -3,6 +3,7 @@ import Foundation
 nonisolated enum SettingsKeys {
     static let selectedServiceIdentifier = "selected_service"
     static let smartPasteEnabled = "smart_paste_enabled"
+    static let autoStartRecordingFromShortcut = "auto_start_recording_from_shortcut"
     static let openAIModel = "openai_model"
     static let whisperKitModel = "whisperkit_model"
     static let mlxModel = "mlx_model"
@@ -27,6 +28,12 @@ final class SettingsStore {
     var smartPasteEnabled: Bool {
         didSet {
             userDefaults.set(smartPasteEnabled, forKey: SettingsKeys.smartPasteEnabled)
+        }
+    }
+
+    var autoStartRecordingFromShortcut: Bool {
+        didSet {
+            userDefaults.set(autoStartRecordingFromShortcut, forKey: SettingsKeys.autoStartRecordingFromShortcut)
         }
     }
 
@@ -82,6 +89,8 @@ final class SettingsStore {
         } else {
             smartPasteEnabled = userDefaults.bool(forKey: SettingsKeys.smartPasteEnabled)
         }
+
+        autoStartRecordingFromShortcut = userDefaults.bool(forKey: SettingsKeys.autoStartRecordingFromShortcut)
 
         let openAIModelRaw = userDefaults.string(forKey: SettingsKeys.openAIModel)
         let openAIModelValue = OpenAIService.Model(rawValue: openAIModelRaw ?? "") ?? .whisper1
