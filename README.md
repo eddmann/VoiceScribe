@@ -6,25 +6,25 @@ Let your voice do the work.
 
 ## What it does
 
-VoiceScribe is a local-first macOS dictation app that lives in your menu bar. Press a global hotkey, speak, and get text back directly into the app you are using.
+VoiceScribe is a local macOS dictation app that lives in the menu bar. Use a global hotkey, speak, and it returns text to the app you are using.
 
 The app runs a simple on-device pipeline:
 
 1. Record audio from anywhere on macOS
-2. Transcribe with **Whisper** or **Parakeet**
-3. Optionally clean the transcript with a **Local LLM**
+2. Transcribe with Whisper or Parakeet
+3. Optionally clean the transcript with a Local LLM
 4. Copy or paste the final result back into your active app
 5. Save the original transcript and optional processed version together in history
 
 ## Features
 
-- **Global hotkey recording** - Press Option-Shift-Space to record from anywhere
-- **Two local transcription engines** - Choose between Whisper and Parakeet on-device
-- **Downloadable local models** - Pick the model that fits your speed and quality needs
-- **Optional local cleanup** - Run a Local LLM pass for punctuation, formatting, and obvious dictation fixes
-- **Durable transcript history** - Store the original transcript and optional cleaned result together
-- **Auto-paste** - Copy or paste the final transcript directly into your active app
-- **Secure local storage** - History stays on your Mac with no cloud account or API key
+- Global hotkey recording with `Option-Shift-Space`
+- Local transcription with Whisper or Parakeet
+- Optional Local LLM cleanup for punctuation and formatting
+- Downloadable local models for each stage
+- History that keeps the original transcript and optional processed result
+- Copy or auto-paste of the final result
+- No cloud account or API key
 
 ## Screenshots
 
@@ -63,28 +63,26 @@ The app runs a simple on-device pipeline:
 
 VoiceScribe supports two local transcription engines:
 
-- **Whisper**
-  - `Fast — Small`
-  - `Balanced — Distil Large v3`
-  - `Best — Large v3`
-- **Parakeet**
-  - `English — English v2`
-  - `Multilingual — Multilingual v3`
+- Whisper
+  - Fast — [Small](https://huggingface.co/argmaxinc/whisperkit-coreml/tree/main/openai_whisper-small)
+  - Balanced — [Distil Large v3](https://huggingface.co/argmaxinc/whisperkit-coreml/tree/main/distil-whisper_distil-large-v3_594MB)
+  - Best — [Large v3](https://huggingface.co/argmaxinc/whisperkit-coreml/tree/main/openai_whisper-large-v3-v20240930_626MB)
+- Parakeet
+  - English — [English v2](https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml)
+  - Multilingual — [Multilingual v3](https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v3-coreml)
 
 ### Cleanup
 
 The optional cleanup pass runs locally with MLX-backed LLMs:
 
-- **Local LLM**
-  - `Fast — Qwen3 1.7B`
-  - `Balanced — Llama 3.2 3B`
-  - `Best — Qwen3 4B`
-
-The Settings window includes the technical model ID and a direct Hugging Face link for every selectable model.
+- Local LLM
+  - Fast — [Qwen3 1.7B](https://huggingface.co/Qwen/Qwen3-1.7B-MLX-4bit)
+  - Balanced — [Llama 3.2 3B](https://huggingface.co/mlx-community/Llama-3.2-3B-Instruct-4bit)
+  - Best — [Qwen3 4B](https://huggingface.co/Qwen/Qwen3-4B-MLX-4bit)
 
 ### History
 
-History reflects the pipeline directly:
+History mirrors the pipeline directly:
 
 - If cleanup is disabled, history stores only the original transcript
 - If cleanup is enabled, history stores both the original and processed versions
@@ -104,22 +102,22 @@ brew install eddmann/tap/voicescribe
 2. Unzip and move `VoiceScribe.app` to Applications
 3. Double-click to open
 
-The app is signed and notarized by Apple, so it will open without any security warnings.
+The app is signed and notarized by Apple.
 
 ## Usage
 
-- Press **Option-Shift-Space** to open the recording window
-- Press **Space** to start or stop recording
+- Press `Option-Shift-Space` to open the recording window
+- Press `Space` to start or stop recording
 - VoiceScribe copies the final transcript and pastes it if enabled
 
 ### First launch
 
-1. Open **Settings**
-2. In **Transcription**, choose `Whisper` or `Parakeet` and the model you want to use
-3. In **Cleanup**, optionally enable `Local LLM` and choose a cleanup model
-4. In **Preferences**, enable auto-paste if desired
+1. Open `Settings`
+2. In `Transcription`, choose `Whisper` or `Parakeet` and the model you want to use
+3. In `Cleanup`, optionally enable `Local LLM` and choose a cleanup model
+4. In `Preferences`, enable auto-paste if desired
 5. Grant microphone access when macOS asks
-6. Press **Option-Shift-Space** to start your first recording
+6. Press `Option-Shift-Space` to start your first recording
 
 ## Requirements
 
