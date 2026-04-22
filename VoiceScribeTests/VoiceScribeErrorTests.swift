@@ -102,8 +102,7 @@ final class VoiceScribeErrorTests: XCTestCase {
         ]
 
         for error in errorsWithoutRecoverySuggestions {
-            // Just verify these don't crash - recovery suggestion may be nil
-            _ = error.recoverySuggestion
+            XCTAssertNil(error.recoverySuggestion, "Expected no recovery suggestion for \(error)")
         }
     }
 }

@@ -35,7 +35,6 @@ The app runs a simple on-device pipeline:
   <img src="docs/record-recording.png" width="200" alt="Recording window - Recording">
   <img src="docs/record-processing.png" width="200" alt="Recording window - Processing">
   <img src="docs/record-success.png" width="200" alt="Recording window - Success">
-  <img src="docs/record-error.png" width="200" alt="Recording window - Error">
 </p>
 
 ### History

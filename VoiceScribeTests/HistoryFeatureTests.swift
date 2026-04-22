@@ -59,5 +59,7 @@ final class HistoryFeatureTests: XCTestCase {
         }
 
         await store.send(.clearCopied(otherID))
+
+        XCTAssertEqual(store.state.copiedRecordID, copiedID)
     }
 }
