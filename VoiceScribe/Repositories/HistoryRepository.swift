@@ -16,12 +16,16 @@ final class HistoryRepository: HistoryRepositoryProtocol {
         self.modelContext = modelContext
     }
 
-    func saveTranscription(text: String, serviceIdentifier: String, audioURL: URL) async {
+    func saveTranscription(
+        original: TranscriptArtifact,
+        processed: TranscriptArtifact?,
+        audioURL: URL
+    ) async {
         let duration = await getAudioDuration(audioURL)
 
         let record = TranscriptionRecord(
-            text: text,
-            serviceUsed: serviceIdentifier,
+            original: original,
+            processed: processed,
             audioDuration: duration
         )
 

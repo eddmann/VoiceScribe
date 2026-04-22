@@ -1,34 +1,36 @@
 import Combine
 import SwiftUI
+import ComposableArchitecture
 
 /// Compact floating recording bar with waveform visualization
 struct FloatingRecordBar: View {
-    @Environment(AppState.self) private var appState
+    let store: StoreOf<PipelineFeature>
     @FocusState private var isBarFocused: Bool
 
     var body: some View {
+        let phase = store.phase
+
         HStack(spacing: 12) {
-            // Record/Stop button
             RecordStopButton(
-                state: appState.recordingState,
-                action: handleMainAction
+                phase: phase,
+                action: { handleMainAction() }
             )
 
-            // Waveform visualization
             WaveformCanvas(
-                audioLevelHistory: appState.audioLevelHistory,
-                isRecording: appState.recordingState.isRecording
+                audioLevelHistory: store.audioLevelHistory,
+                isRecording: store.isRecording
             )
             .frame(maxWidth: .infinity)
 
-            // Status area (duration or status text)
             StatusArea(
-                state: appState.recordingState,
-                recordingStartDate: appState.recordingStartDate
+                phase: phase,
+                recordingStartDate: store.recordingStartDate
             )
 
-            // Close button
-            CloseButton()
+            CloseButton(action: {
+                store.send(.cancelTapped)
+                NotificationCenter.default.post(name: .closeRecordingWindow, object: nil)
+            })
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -40,7 +42,6 @@ struct FloatingRecordBar: View {
         .focused($isBarFocused)
         .focusEffectDisabled()
         .onAppear {
-            // Request focus after view is laid out to enable spacebar shortcut
             DispatchQueue.main.async {
                 isBarFocused = true
             }
@@ -52,15 +53,13 @@ struct FloatingRecordBar: View {
     }
 
     private func handleMainAction() {
-        Task {
-            switch appState.recordingState {
-            case .idle, .completed, .error:
-                await appState.startRecording()
-            case .recording:
-                await appState.stopRecording()
-            case .processing:
-                await appState.cancelActiveWork()
-            }
+        switch store.phase {
+        case .idle, .completed, .error:
+            store.send(.startRecordingTapped)
+        case .recording:
+            store.send(.stopRecordingTapped)
+        case .transcribing, .cleaning:
+            store.send(.cancelTapped)
         }
     }
 }
@@ -68,7 +67,7 @@ struct FloatingRecordBar: View {
 // MARK: - Record/Stop Button
 
 private struct RecordStopButton: View {
-    let state: RecordingState
+    let phase: PipelineFeature.State.Phase
     let action: () -> Void
 
     var body: some View {
@@ -89,10 +88,10 @@ private struct RecordStopButton: View {
     }
 
     private var buttonColor: Color {
-        switch state {
+        switch phase {
         case .recording:
             return .red
-        case .processing:
+        case .transcribing, .cleaning:
             return .orange
         case .completed:
             return .green
@@ -105,12 +104,12 @@ private struct RecordStopButton: View {
 
     @ViewBuilder
     private var buttonIcon: some View {
-        switch state {
+        switch phase {
         case .idle:
             Image(systemName: "mic.fill")
         case .recording:
             Image(systemName: "stop.fill")
-        case .processing:
+        case .transcribing, .cleaning:
             Image(systemName: "xmark")
         case .completed:
             Image(systemName: "checkmark")
@@ -120,10 +119,10 @@ private struct RecordStopButton: View {
     }
 
     private var accessibilityLabel: String {
-        switch state {
+        switch phase {
         case .idle: return "Start recording"
         case .recording: return "Stop recording"
-        case .processing: return "Cancel processing"
+        case .transcribing, .cleaning: return "Cancel processing"
         case .completed: return "Completed"
         case .error: return "Error occurred"
         }
@@ -195,21 +194,21 @@ struct WaveformCanvas: View {
 // MARK: - Status Area
 
 private struct StatusArea: View {
-    let state: RecordingState
+    let phase: PipelineFeature.State.Phase
     let recordingStartDate: Date?
 
     var body: some View {
         Group {
-            switch state {
+            switch phase {
             case .idle:
                 Text("Space")
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.gray)
             case .recording:
                 DurationView(startDate: recordingStartDate)
-            case .processing(let progress):
+            case .transcribing(let progress), .cleaning(let progress):
                 processingText(progress)
-            case .completed(_, let pasted, _):
+            case .completed(_, let pasted):
                 Text(pasted ? "Pasted!" : "Copied!")
                     .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.green)
@@ -226,7 +225,7 @@ private struct StatusArea: View {
     @ViewBuilder
     private func processingText(_ progress: String) -> some View {
         // Show phase-aware processing status
-        if progress.localizedCaseInsensitiveContains("post-processing") ||
+        if progress.localizedCaseInsensitiveContains("cleanup") ||
            progress.localizedCaseInsensitiveContains("enhancing") {
             HStack(spacing: 4) {
                 Image(systemName: "sparkles")
@@ -308,16 +307,10 @@ private struct BouncingDots: View {
 // MARK: - Close Button
 
 private struct CloseButton: View {
-    @Environment(AppState.self) private var appState
+    let action: () -> Void
 
     var body: some View {
-        Button {
-            Task {
-                await appState.cancelActiveWork()
-                // Post notification to close the window
-                NotificationCenter.default.post(name: .closeRecordingWindow, object: nil)
-            }
-        } label: {
+        Button(action: action) {
             Image(systemName: "xmark")
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(.gray)
@@ -332,8 +325,11 @@ private struct CloseButton: View {
 }
 
 #Preview {
-    FloatingRecordBar()
-        .environment(AppState())
+    FloatingRecordBar(
+        store: Store(initialState: PipelineFeature.State()) {
+            PipelineFeature()
+        }
+    )
         .padding()
         .background(Color.black)
 }

@@ -1,13 +1,13 @@
 import Foundation
 
 nonisolated enum SettingsKeys {
-    static let selectedServiceIdentifier = "selected_service"
+    static let selectedTranscriptionEngine = "selected_transcription_engine"
     static let smartPasteEnabled = "smart_paste_enabled"
-    static let openAIModel = "openai_model"
-    static let whisperKitModel = "whisperkit_model"
-    static let mlxModel = "mlx_model"
-    static let openAIPostProcessEnabled = "openai_post_process_enabled"
-    static let whisperKitPostProcessEnabled = "whisperkit_post_process_enabled"
+    static let autoStartRecordingFromShortcut = "auto_start_recording_from_shortcut"
+    static let parakeetModel = "parakeet_model"
+    static let whisperModel = "whisper_model"
+    static let localLLMModel = "local_llm_model"
+    static let localLLMEnabled = "local_llm_enabled"
     static let historyLimit = "history_limit"
 }
 
@@ -18,9 +18,9 @@ final class SettingsStore {
 
     private let userDefaults: UserDefaults
 
-    var selectedServiceIdentifier: String {
+    var selectedTranscriptionEngine: String {
         didSet {
-            userDefaults.set(selectedServiceIdentifier, forKey: SettingsKeys.selectedServiceIdentifier)
+            userDefaults.set(selectedTranscriptionEngine, forKey: SettingsKeys.selectedTranscriptionEngine)
         }
     }
 
@@ -30,33 +30,33 @@ final class SettingsStore {
         }
     }
 
-    var openAIModel: OpenAIService.Model {
+    var autoStartRecordingFromShortcut: Bool {
         didSet {
-            userDefaults.set(openAIModel.rawValue, forKey: SettingsKeys.openAIModel)
+            userDefaults.set(autoStartRecordingFromShortcut, forKey: SettingsKeys.autoStartRecordingFromShortcut)
         }
     }
 
-    var whisperKitModel: WhisperKitService.Model {
+    var parakeetModel: ParakeetEngine.Model {
         didSet {
-            userDefaults.set(whisperKitModel.rawValue, forKey: SettingsKeys.whisperKitModel)
+            userDefaults.set(parakeetModel.rawValue, forKey: SettingsKeys.parakeetModel)
         }
     }
 
-    var mlxModel: MLXService.Model {
+    var whisperModel: WhisperEngine.Model {
         didSet {
-            userDefaults.set(mlxModel.rawValue, forKey: SettingsKeys.mlxModel)
+            userDefaults.set(whisperModel.rawValue, forKey: SettingsKeys.whisperModel)
         }
     }
 
-    var openAIPostProcessEnabled: Bool {
+    var localLLMModel: LocalLLMCleanupEngine.Model {
         didSet {
-            userDefaults.set(openAIPostProcessEnabled, forKey: SettingsKeys.openAIPostProcessEnabled)
+            userDefaults.set(localLLMModel.rawValue, forKey: SettingsKeys.localLLMModel)
         }
     }
 
-    var whisperKitPostProcessEnabled: Bool {
+    var localLLMEnabled: Bool {
         didSet {
-            userDefaults.set(whisperKitPostProcessEnabled, forKey: SettingsKeys.whisperKitPostProcessEnabled)
+            userDefaults.set(localLLMEnabled, forKey: SettingsKeys.localLLMEnabled)
         }
     }
 
@@ -69,11 +69,18 @@ final class SettingsStore {
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
 
-        let storedService = userDefaults.string(forKey: SettingsKeys.selectedServiceIdentifier)
-        let validService = (storedService != nil && !storedService!.isEmpty) ? storedService! : "whisperkit"
-        selectedServiceIdentifier = validService
-        if storedService == nil || storedService!.isEmpty {
-            userDefaults.set(validService, forKey: SettingsKeys.selectedServiceIdentifier)
+        let storedEngine = userDefaults.string(forKey: SettingsKeys.selectedTranscriptionEngine)
+        let restoredEngine = storedEngine ?? "whisper"
+        let validEngine: String
+        switch restoredEngine {
+        case "whisper", "parakeet":
+            validEngine = restoredEngine
+        default:
+            validEngine = "whisper"
+        }
+        selectedTranscriptionEngine = validEngine
+        if storedEngine == nil || storedEngine != validEngine {
+            userDefaults.set(validEngine, forKey: SettingsKeys.selectedTranscriptionEngine)
         }
 
         if userDefaults.object(forKey: SettingsKeys.smartPasteEnabled) == nil {
@@ -83,35 +90,34 @@ final class SettingsStore {
             smartPasteEnabled = userDefaults.bool(forKey: SettingsKeys.smartPasteEnabled)
         }
 
-        let openAIModelRaw = userDefaults.string(forKey: SettingsKeys.openAIModel)
-        let openAIModelValue = OpenAIService.Model(rawValue: openAIModelRaw ?? "") ?? .whisper1
-        openAIModel = openAIModelValue
-        if openAIModelRaw == nil {
-            userDefaults.set(openAIModelValue.rawValue, forKey: SettingsKeys.openAIModel)
+        autoStartRecordingFromShortcut = userDefaults.bool(forKey: SettingsKeys.autoStartRecordingFromShortcut)
+
+        let parakeetModelRaw = userDefaults.string(forKey: SettingsKeys.parakeetModel)
+        let parakeetModelValue = ParakeetEngine.Model(rawValue: parakeetModelRaw ?? "") ?? .englishV2
+        parakeetModel = parakeetModelValue
+        if parakeetModelRaw == nil {
+            userDefaults.set(parakeetModelValue.rawValue, forKey: SettingsKeys.parakeetModel)
         }
 
-        let whisperKitModelRaw = userDefaults.string(forKey: SettingsKeys.whisperKitModel)
-        let whisperKitModelValue = WhisperKitService.Model(rawValue: whisperKitModelRaw ?? "") ?? .base
-        whisperKitModel = whisperKitModelValue
-        if whisperKitModelRaw == nil {
-            userDefaults.set(whisperKitModelValue.rawValue, forKey: SettingsKeys.whisperKitModel)
+        let whisperModelRaw = userDefaults.string(forKey: SettingsKeys.whisperModel)
+        let whisperModelValue = WhisperEngine.Model(rawValue: whisperModelRaw ?? "") ?? .small
+        whisperModel = whisperModelValue
+        if userDefaults.string(forKey: SettingsKeys.whisperModel) == nil {
+            userDefaults.set(whisperModelValue.rawValue, forKey: SettingsKeys.whisperModel)
         }
 
-        let mlxModelRaw = userDefaults.string(forKey: SettingsKeys.mlxModel)
-        let mlxModelValue = MLXService.Model(rawValue: mlxModelRaw ?? "") ?? .qwen25_0_5b
-        mlxModel = mlxModelValue
-        if mlxModelRaw == nil {
-            userDefaults.set(mlxModelValue.rawValue, forKey: SettingsKeys.mlxModel)
+        let localLLMModelRaw = userDefaults.string(forKey: SettingsKeys.localLLMModel)
+        let localLLMModelValue = LocalLLMCleanupEngine.Model(rawValue: localLLMModelRaw ?? "") ?? .qwen3_1_7b
+        localLLMModel = localLLMModelValue
+        if userDefaults.string(forKey: SettingsKeys.localLLMModel) == nil {
+            userDefaults.set(localLLMModelValue.rawValue, forKey: SettingsKeys.localLLMModel)
         }
 
-        openAIPostProcessEnabled = userDefaults.bool(forKey: SettingsKeys.openAIPostProcessEnabled)
-        if userDefaults.object(forKey: SettingsKeys.openAIPostProcessEnabled) == nil {
-            userDefaults.set(false, forKey: SettingsKeys.openAIPostProcessEnabled)
-        }
-
-        whisperKitPostProcessEnabled = userDefaults.bool(forKey: SettingsKeys.whisperKitPostProcessEnabled)
-        if userDefaults.object(forKey: SettingsKeys.whisperKitPostProcessEnabled) == nil {
-            userDefaults.set(false, forKey: SettingsKeys.whisperKitPostProcessEnabled)
+        if userDefaults.object(forKey: SettingsKeys.localLLMEnabled) != nil {
+            localLLMEnabled = userDefaults.bool(forKey: SettingsKeys.localLLMEnabled)
+        } else {
+            localLLMEnabled = false
+            userDefaults.set(false, forKey: SettingsKeys.localLLMEnabled)
         }
 
         if userDefaults.object(forKey: SettingsKeys.historyLimit) == nil {
