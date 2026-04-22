@@ -4,17 +4,27 @@
 
 Let your voice do the work.
 
+## What it does
+
+VoiceScribe is a local-first macOS dictation app that lives in your menu bar. Press a global hotkey, speak, and get text back directly into the app you are using.
+
+The app runs a simple on-device pipeline:
+
+1. Record audio from anywhere on macOS
+2. Transcribe with **Whisper** or **Parakeet**
+3. Optionally clean the transcript with a **Local LLM**
+4. Copy or paste the final result back into your active app
+5. Save the original transcript and optional processed version together in history
+
 ## Features
 
-- **Global hotkey recording** - Press Option-Shift-Space to record from anywhere (customizable)
-- **Dual transcription engines** - Choose between privacy-focused local [WhisperKit](https://github.com/argmaxinc/WhisperKit) (on-device, Apple Silicon only) or cloud-based OpenAI Transcription
-- **Multiple AI models** - Download and switch between WhisperKit models (Base/Small/Medium) or select OpenAI models (Whisper V2/GPT-4o/GPT-4o Mini)
-- **AI-powered enhancement** - Optional post-processing to add perfect punctuation, capitalization, and formatting:
-  - **Local mode**: 100% private on-device enhancement using MLX models (Qwen 2.5/Llama 3.2/Phi-3.5)
-  - **Cloud mode**: Fast enhancement using OpenAI GPT-4o-mini
-- **Auto-paste** - Transcriptions paste directly into your active app
-- **Transcription history** - Review past transcriptions anytime
-- **Secure storage** - API keys encrypted in macOS Keychain
+- **Global hotkey recording** - Press Option-Shift-Space to record from anywhere
+- **Two local transcription engines** - Choose between Whisper and Parakeet on-device
+- **Downloadable local models** - Pick the model that fits your speed and quality needs
+- **Optional local cleanup** - Run a Local LLM pass for punctuation, formatting, and obvious dictation fixes
+- **Durable transcript history** - Store the original transcript and optional cleaned result together
+- **Auto-paste** - Copy or paste the final transcript directly into your active app
+- **Secure local storage** - History stays on your Mac with no cloud account or API key
 
 ## Screenshots
 
@@ -25,19 +35,60 @@ Let your voice do the work.
   <img src="docs/record-recording.png" width="200" alt="Recording window - Recording">
   <img src="docs/record-processing.png" width="200" alt="Recording window - Processing">
   <img src="docs/record-success.png" width="200" alt="Recording window - Success">
+  <img src="docs/record-error.png" width="200" alt="Recording window - Error">
 </p>
 
 ### History
 
-<img src="docs/history.png" width="700" alt="History window with transcriptions">
+<p align="center">
+  <img src="docs/history.png" width="700" alt="History window with processed and original transcript variants">
+</p>
 
 ### Settings
 
 <p align="center">
-  <img src="docs/settings-service-whisper.png" width="280" alt="Settings - WhisperKit Service">
-  <img src="docs/settings-service-openai.png" width="280" alt="Settings - OpenAI Service">
-  <img src="docs/settings-preferences.png" width="280" alt="Settings - Preferences">
+  <img src="docs/settings-transcription-whisper.png" width="320" alt="Settings - Transcription with Whisper selected">
+  <img src="docs/settings-transcription-parakeet.png" width="320" alt="Settings - Transcription with Parakeet selected">
+  <img src="docs/settings-cleanup.png" width="320" alt="Settings - Cleanup with Local LLM enabled">
 </p>
+
+<p align="center">
+  <img src="docs/settings-preferences.png" width="320" alt="Settings - Preferences">
+  <img src="docs/settings-about.png" width="320" alt="Settings - About">
+</p>
+
+## How it works
+
+### Transcription
+
+VoiceScribe supports two local transcription engines:
+
+- **Whisper**
+  - `Fast — Small`
+  - `Balanced — Distil Large v3`
+  - `Best — Large v3`
+- **Parakeet**
+  - `English — English v2`
+  - `Multilingual — Multilingual v3`
+
+### Cleanup
+
+The optional cleanup pass runs locally with MLX-backed LLMs:
+
+- **Local LLM**
+  - `Fast — Qwen3 1.7B`
+  - `Balanced — Llama 3.2 3B`
+  - `Best — Qwen3 4B`
+
+The Settings window includes the technical model ID and a direct Hugging Face link for every selectable model.
+
+### History
+
+History reflects the pipeline directly:
+
+- If cleanup is disabled, history stores only the original transcript
+- If cleanup is enabled, history stores both the original and processed versions
+- The History window lets you switch between `Processed` and `Original` before copying
 
 ## Installation
 
@@ -58,48 +109,61 @@ The app is signed and notarized by Apple, so it will open without any security w
 ## Usage
 
 - Press **Option-Shift-Space** to open the recording window
-- Press **Space** to start/stop recording
-- Transcription automatically copies to clipboard and pastes if enabled
+- Press **Space** to start or stop recording
+- VoiceScribe copies the final transcript and pastes it if enabled
 
-### First Launch
+### First launch
 
-1. VoiceScribe appears in your menu bar as a waveform icon
-2. Click and select "Settings" to choose your transcription service:
-   - Local [WhisperKit](https://github.com/argmaxinc/WhisperKit) (recommended) - Download a model to get started
-   - OpenAI Transcription - Add your API key from [OpenAI](https://platform.openai.com/api-keys) and select a model (Whisper V2, GPT-4o, or GPT-4o Mini)
-3. Optionally enable "Enhance transcriptions" for AI-powered post-processing:
-   - WhisperKit users can choose an MLX model for 100% private local enhancement
-   - OpenAI users get cloud-based enhancement via GPT-4o-mini
-4. Enable "Auto-paste" in Preferences and grant Accessibility permission if desired
-5. Press **Option-Shift-Space** to start your first recording
+1. Open **Settings**
+2. In **Transcription**, choose `Whisper` or `Parakeet` and the model you want to use
+3. In **Cleanup**, optionally enable `Local LLM` and choose a cleanup model
+4. In **Preferences**, enable auto-paste if desired
+5. Grant microphone access when macOS asks
+6. Press **Option-Shift-Space** to start your first recording
 
 ## Requirements
 
-- macOS 14.0 (Sonoma) or later
-- Apple Silicon (M-series) Mac for local WhisperKit transcription and MLX enhancement
-- Intel Macs supported with OpenAI Transcription API
+- macOS 14.0 or later
+- Apple Silicon Mac
+- Internet connection for first-time model downloads only
+
+## Development
+
+Common commands:
+
+```bash
+make help
+make test
+make build
+make dev
+make can-release
+```
+
+Open the project in Xcode if needed:
+
+```bash
+open VoiceScribe.xcodeproj
+```
+
+## Built with
+
+- [WhisperKit](https://github.com/argmaxinc/WhisperKit) - local Whisper transcription on Core ML
+- [FluidAudio](https://github.com/FluidInference/FluidAudio) - local Parakeet transcription on Core ML
+- [MLX Swift Examples](https://github.com/ml-explore/mlx-swift-examples) - local LLM cleanup
+- [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) - app state and workflow orchestration
+- [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) - global hotkey management
 
 ## Privacy
 
-VoiceScribe gives you full control over your data:
+VoiceScribe is local-only after the initial model download:
 
-### Local Mode (WhisperKit + MLX)
-
-- 100% private - All transcription and AI enhancement happens on-device
-- No network transmission - Your audio and text never leave your Mac
-- Ideal for sensitive content - Perfect for lawyers, doctors, journalists, and anyone handling confidential information
-- Free - No API costs
-
-### Cloud Mode (OpenAI)
-
-- Audio transmission - Audio files sent to OpenAI servers for transcription
-- Optional text enhancement - If post-processing enabled, transcribed text sent to OpenAI for formatting
-- API costs - Approximately $0.006-0.024/minute for transcription, ~$0.004 additional if enhancement enabled
-- Review [OpenAI's Privacy Policy](https://openai.com/policies/privacy-policy) for details
-
-### Security Features
-
-- API keys encrypted in macOS Keychain with device-only access
-- Audio files stored in temporary directory and automatically deleted after transcription
-- Transcription history stored locally with SwiftData
+- Audio and transcript processing stay on-device
+- No cloud transcription path
+- No API keys, accounts, or usage fees
 - No telemetry or analytics
+- History is stored locally with SwiftData
+- Temporary audio files are deleted after transcription
+
+## License
+
+[MIT](LICENSE)

@@ -17,13 +17,13 @@ final class VoiceScribeErrorTests: XCTestCase {
         XCTAssertFalse(error.errorDescription!.isEmpty)
     }
 
-    func test_transcriptionFailed_includesServiceAndReason() {
-        let serviceName = "TestService"
+    func test_transcriptionFailed_includesEngineAndReason() {
+        let engineName = "Test Engine"
         let reason = "Network timeout"
-        let error = VoiceScribeError.transcriptionFailed(service: serviceName, reason: reason)
+        let error = VoiceScribeError.transcriptionFailed(engine: engineName, reason: reason)
 
         XCTAssertNotNil(error.errorDescription)
-        XCTAssertTrue(error.errorDescription!.contains(serviceName))
+        XCTAssertTrue(error.errorDescription!.contains(engineName))
     }
 
     func test_modelNotFound_includesModelName() {
@@ -43,13 +43,6 @@ final class VoiceScribeErrorTests: XCTestCase {
         XCTAssertFalse(error.recoverySuggestion!.isEmpty)
     }
 
-    func test_noAPIKey_hasRecoverySuggestion() {
-        let error = VoiceScribeError.noAPIKey(service: "OpenAI")
-
-        XCTAssertNotNil(error.recoverySuggestion)
-        XCTAssertTrue(error.recoverySuggestion!.lowercased().contains("settings"))
-    }
-
     func test_modelNotFound_hasRecoverySuggestion() {
         let error = VoiceScribeError.modelNotFound(modelName: "test-model")
 
@@ -66,15 +59,12 @@ final class VoiceScribeErrorTests: XCTestCase {
             .recordingInitializationFailed,
             .recordingFailed(underlying: "Test"),
             .noAudioRecorded,
-            .transcriptionFailed(service: "Test", reason: "Test"),
-            .serviceNotAvailable(service: "Test"),
-            .noAPIKey(service: "Test"),
-            .invalidAPIKey(service: "Test"),
-            .networkError(underlying: "Test"),
+            .transcriptionFailed(engine: "Test", reason: "Test"),
+            .engineNotAvailable(engine: "Test"),
             .invalidConfiguration(reason: "Test"),
             .modelNotFound(modelName: "Test"),
             .modelDownloadFailed(modelName: "Test", reason: "Test"),
-            .postProcessingFailed(reason: "Test")
+            .cleanupFailed(reason: "Test")
         ]
 
         for error in errors {
@@ -90,13 +80,10 @@ final class VoiceScribeErrorTests: XCTestCase {
             .microphonePermissionRestricted,
             .recordingInitializationFailed,
             .noAudioRecorded,
-            .serviceNotAvailable(service: "Test"),
-            .noAPIKey(service: "Test"),
-            .invalidAPIKey(service: "Test"),
-            .networkError(underlying: "Test"),
+            .engineNotAvailable(engine: "Test"),
             .modelNotFound(modelName: "Test"),
             .modelDownloadFailed(modelName: "Test", reason: "Test"),
-            .postProcessingFailed(reason: "Test")
+            .cleanupFailed(reason: "Test")
         ]
 
         for error in errorsWithRecoverySuggestions {
@@ -110,7 +97,7 @@ final class VoiceScribeErrorTests: XCTestCase {
         // they provide detailed context in errorDescription/failureReason
         let errorsWithoutRecoverySuggestions: [VoiceScribeError] = [
             .recordingFailed(underlying: "Test"),
-            .transcriptionFailed(service: "Test", reason: "Test"),
+            .transcriptionFailed(engine: "Test", reason: "Test"),
             .invalidConfiguration(reason: "Test")
         ]
 

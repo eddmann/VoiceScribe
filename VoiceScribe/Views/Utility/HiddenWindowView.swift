@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Notification to open settings from anywhere in the app
 extension Notification.Name {
+    static let closeRecordingWindow = Notification.Name("closeRecordingWindow")
     static let openVoiceScribeSettings = Notification.Name("openVoiceScribeSettings")
 }
 
@@ -13,33 +14,9 @@ struct HiddenWindowView: View {
     var body: some View {
         Color.clear
             .frame(width: 1, height: 1)
+            .allowsHitTesting(false)
             .onReceive(NotificationCenter.default.publisher(for: .openVoiceScribeSettings)) { _ in
                 openSettingsFront()
-            }
-            .onAppear {
-                // Find and hide the lifecycle window
-                DispatchQueue.main.async {
-                    for window in NSApp.windows {
-                        // Match by title or by being a tiny window
-                        if window.title == "VoiceScribeLifecycle" ||
-                           (window.frame.width <= 20 && window.frame.height <= 20) {
-                            // Make the keepalive window truly invisible and non-interactive
-                            window.styleMask = [.borderless]
-                            window.collectionBehavior = [.auxiliary, .ignoresCycle, .transient, .canJoinAllSpaces]
-                            window.isExcludedFromWindowsMenu = true
-                            window.level = .floating
-                            window.isOpaque = false
-                            window.alphaValue = 0
-                            window.backgroundColor = .clear
-                            window.hasShadow = false
-                            window.ignoresMouseEvents = true
-                            window.canHide = false
-                            window.setContentSize(NSSize(width: 1, height: 1))
-                            window.setFrameOrigin(NSPoint(x: -5000, y: -5000))
-                            break
-                        }
-                    }
-                }
             }
     }
 

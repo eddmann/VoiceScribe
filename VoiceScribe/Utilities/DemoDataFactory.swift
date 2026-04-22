@@ -11,50 +11,48 @@ import SwiftData
 
 /// Factory for creating demo state for App Store screenshots.
 enum DemoDataFactory {
-    /// Configures the AppState for the specified demo mode.
-    @MainActor
-    static func configure(_ appState: AppState, for mode: DemoMode) {
+    static func makePipelineState(for mode: DemoMode) -> PipelineFeature.State {
+        var state = PipelineFeature.State()
+
         switch mode {
         case .idle:
-            appState.applyDemoState(
-                recordingState: .idle,
-                audioLevelHistory: generateFlatWaveform()
-            )
+            state.audioLevelHistory = generateFlatWaveform()
 
         case .recording:
-            appState.applyDemoState(
-                recordingState: .recording,
-                audioLevelHistory: generateActiveWaveform(),
-                recordingStartDate: Date().addingTimeInterval(-15)
-            )
+            state.phase = .recording
+            state.audioLevelHistory = generateActiveWaveform()
+            state.recordingStartDate = Date().addingTimeInterval(-15)
 
         case .processing:
-            appState.applyDemoState(
-                recordingState: .processing(progress: "Transcribing..."),
-                audioLevelHistory: generateFlatWaveform()
-            )
+            state.phase = .transcribing("Transcribing with Whisper...")
+            state.audioLevelHistory = generateFlatWaveform()
 
         case .completed:
             let sampleText = "Meeting notes: We discussed the Q1 roadmap and agreed to prioritize the mobile app redesign."
-            appState.applyDemoState(
-                recordingState: .completed(text: sampleText, pasted: true, smartPasteAttempted: true),
-                audioLevelHistory: generateFlatWaveform()
+            state.latestRun = TranscriptRun(
+                original: TranscriptArtifact(
+                    text: sampleText,
+                    engine: "Whisper",
+                    model: "Balanced — Distil Large v3"
+                ),
+                processed: TranscriptArtifact(
+                    text: sampleText,
+                    engine: "Local LLM",
+                    model: "Fast — Qwen3 1.7B"
+                )
             )
+            state.phase = .completed(text: sampleText, pasted: true)
+            state.audioLevelHistory = generateFlatWaveform()
 
         case .error:
-            appState.applyDemoState(
-                recordingState: .error("Network connection failed"),
-                audioLevelHistory: generateFlatWaveform()
-            )
+            state.phase = .error("Transcription failed")
+            state.audioLevelHistory = generateFlatWaveform()
 
         case .historyPopulated, .historyEmpty:
-            // History modes don't need AppState configuration
-            // They use SwiftData which is configured separately
-            appState.applyDemoState(
-                recordingState: .idle,
-                audioLevelHistory: generateFlatWaveform()
-            )
+            state.audioLevelHistory = generateFlatWaveform()
         }
+
+        return state
     }
 
     /// Populates the model context with sample transcription records.
@@ -72,33 +70,58 @@ enum DemoDataFactory {
     private static func createSampleRecords() -> [TranscriptionRecord] {
         [
             TranscriptionRecord(
-                text: "Hey, can you send me the updated design files when you get a chance? I want to review them before our meeting tomorrow.",
+                original: TranscriptArtifact(
+                    text: "hey can you send me the updated design files when you get a chance i want to review them before our meeting tomorrow",
+                    engine: "Whisper",
+                    model: "Balanced — Distil Large v3"
+                ),
+                processed: TranscriptArtifact(
+                    text: "Hey, can you send me the updated design files when you get a chance? I want to review them before our meeting tomorrow.",
+                    engine: "Local LLM",
+                    model: "Balanced — Llama 3.2 3B"
+                ),
                 timestamp: Date().addingTimeInterval(-300),
-                serviceUsed: "WhisperKit",
                 audioDuration: 8.5
             ),
             TranscriptionRecord(
-                text: "Meeting notes: We discussed the Q1 roadmap and agreed to prioritize the mobile app redesign. Next steps include finalizing wireframes by Friday.",
+                original: TranscriptArtifact(
+                    text: "Meeting notes we discussed the Q1 roadmap and agreed to prioritize the mobile app redesign next steps include finalizing wireframes by friday",
+                    engine: "Parakeet",
+                    model: "English v2"
+                ),
+                processed: TranscriptArtifact(
+                    text: "Meeting notes: We discussed the Q1 roadmap and agreed to prioritize the mobile app redesign. Next steps include finalizing wireframes by Friday.",
+                    engine: "Local LLM",
+                    model: "Fast — Qwen3 1.7B"
+                ),
                 timestamp: Date().addingTimeInterval(-3600),
-                serviceUsed: "OpenAI",
                 audioDuration: 15.2
             ),
             TranscriptionRecord(
-                text: "Remember to pick up groceries on the way home. We need milk, eggs, and bread.",
+                original: TranscriptArtifact(
+                    text: "Remember to pick up groceries on the way home. We need milk, eggs, and bread.",
+                    engine: "Whisper",
+                    model: "Fast — Small"
+                ),
                 timestamp: Date().addingTimeInterval(-7200),
-                serviceUsed: "WhisperKit",
                 audioDuration: 5.8
             ),
             TranscriptionRecord(
-                text: "The project deadline has been moved to next Thursday. Please update your calendars and let me know if you have any conflicts.",
+                original: TranscriptArtifact(
+                    text: "The project deadline has been moved to next Thursday. Please update your calendars and let me know if you have any conflicts.",
+                    engine: "Parakeet",
+                    model: "Multilingual v3"
+                ),
                 timestamp: Date().addingTimeInterval(-86400),
-                serviceUsed: "OpenAI",
                 audioDuration: 12.3
             ),
             TranscriptionRecord(
-                text: "Quick note to self: Follow up with the marketing team about the launch campaign assets.",
+                original: TranscriptArtifact(
+                    text: "Quick note to self: Follow up with the marketing team about the launch campaign assets.",
+                    engine: "Whisper",
+                    model: "Best — Large v3"
+                ),
                 timestamp: Date().addingTimeInterval(-172800),
-                serviceUsed: "WhisperKit",
                 audioDuration: 6.1
             ),
         ]

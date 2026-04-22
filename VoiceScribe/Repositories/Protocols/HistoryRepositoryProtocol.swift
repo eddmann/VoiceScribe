@@ -2,5 +2,9 @@ import Foundation
 
 @MainActor
 protocol HistoryRepositoryProtocol: Sendable {
-    func saveTranscription(text: String, serviceIdentifier: String, audioURL: URL) async
+    func saveTranscription(
+        original: TranscriptArtifact,
+        processed: TranscriptArtifact?,
+        audioURL: URL
+    ) async
 }

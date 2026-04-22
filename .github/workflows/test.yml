@@ -25,12 +25,5 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Run tests
-        run: |
-          xcodebuild test \
-            -project VoiceScribe.xcodeproj \
-            -scheme VoiceScribe \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="-" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+      - name: Run verification
+        run: make can-release

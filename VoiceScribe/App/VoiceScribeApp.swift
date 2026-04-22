@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
 /// VoiceScribe - Modern macOS transcription app
 @main
@@ -16,7 +17,12 @@ struct VoiceScribeApp: App {
 
         // Native Settings scene with tab icons
         Settings {
-            SettingsView(appState: .shared)
+            SettingsView(
+                store: appDelegate.appStore.scope(
+                    state: \.settings,
+                    action: { .settings($0) }
+                )
+            )
         }
         .windowResizability(.contentSize)
     }
@@ -25,8 +31,6 @@ struct VoiceScribeApp: App {
 /// App delegate to manage menu bar and global state
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    // Use shared AppState instance
-    let appState = AppState.shared
     var menuBarController: MenuBarController?
     let hotkeyManager = HotkeyManager.shared
 
@@ -48,11 +52,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isInMemory)
 
         do {
-            let container = try ModelContainer(for: schema, configurations: [configuration])
-            appState.setHistoryRepository(HistoryRepository(modelContext: container.mainContext))
-            return container
+            return try ModelContainer(for: schema, configurations: [configuration])
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
+        }
+    }()
+
+    lazy var appStore: StoreOf<AppFeature> = {
+        let historyRepository = HistoryRepository(modelContext: modelContainer.mainContext)
+        let clipboardClient = PasteboardClipboardClient()
+        let focusClient = AppFocusManager.shared
+        let pasteClient = PasteSimulator.shared
+
+        return Store(initialState: .init()) {
+            AppFeature(
+                pipeline: PipelineFeature(
+                    completionClient: AppCompletionClient.live(
+                        historyRepository: historyRepository,
+                        clipboardClient: clipboardClient,
+                        focusClient: focusClient,
+                        pasteClient: pasteClient
+                    )
+                )
+            )
         }
     }()
 
@@ -68,7 +90,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApplication.shared.setActivationPolicy(.accessory)
 
         // Setup menu bar with shared model container
-        menuBarController = MenuBarController(appState: appState, modelContainer: modelContainer)
+        menuBarController = MenuBarController(
+            store: appStore,
+            modelContainer: modelContainer
+        )
 
         #if DEBUG
         if let demoMode {
@@ -89,9 +114,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     #if DEBUG
     private func configureDemoMode(_ mode: DemoMode) {
-        // Configure app state for the demo mode
-        DemoDataFactory.configure(appState, for: mode)
-
         // Populate history if needed
         if mode == .historyPopulated {
             DemoDataFactory.populateHistory(context: modelContainer.mainContext)
@@ -101,7 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if mode.showsHistoryWindow {
             menuBarController?.showHistory()
         } else {
-            menuBarController?.showRecordingWindowForDemo()
+            menuBarController?.showRecordingWindowForDemo(mode: mode)
         }
     }
     #endif

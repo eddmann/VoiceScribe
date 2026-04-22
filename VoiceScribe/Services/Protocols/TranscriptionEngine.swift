@@ -1,18 +1,15 @@
 import Foundation
 
-/// Protocol defining a transcription service
-/// All implementations must be thread-safe (Sendable) and use async/await
-protocol TranscriptionService: Sendable {
-    /// Human-readable name of the service (e.g., "OpenAI Whisper", "Local WhisperKit")
+/// Protocol defining a transcription engine.
+/// All implementations must be thread-safe (Sendable) and use async/await.
+protocol TranscriptionEngine: Sendable {
+    /// Human-readable engine name (e.g., "Whisper", "Parakeet")
     var name: String { get }
 
-    /// Unique identifier for the service (e.g., "openai", "whisperkit")
+    /// Unique identifier for the engine (e.g., "whisper", "parakeet")
     var identifier: String { get }
 
-    /// Whether this service requires an API key
-    var requiresAPIKey: Bool { get }
-
-    /// Whether this service is currently available/configured
+    /// Whether this engine is currently available/configured.
     var isAvailable: Bool { get async }
 
     /// Optional progress handler for transcription operations
@@ -23,17 +20,20 @@ protocol TranscriptionService: Sendable {
 
     /// Transcribe audio from a file URL
     /// - Parameter audioURL: URL to the audio file (must be accessible)
-    /// - Returns: Transcribed text
+    /// - Returns: Structured transcription result
     /// - Throws: VoiceScribeError if transcription fails
-    func transcribe(audioURL: URL) async throws -> String
+    func transcribe(audioURL: URL) async throws -> TranscriptionResult
 
-    /// Validate the current configuration (API key, model availability, etc.)
+    /// Validate the current configuration (model availability, etc.)
     /// - Throws: VoiceScribeError if configuration is invalid
     func validateConfiguration() async throws
+
+    /// Human-readable model name for the current selection.
+    func currentModelName() async -> String
 }
 
-/// Service configuration status
-enum ServiceStatus: Sendable {
+/// Engine configuration status.
+enum EngineStatus: Sendable {
     case ready
     case notConfigured
     case configuring

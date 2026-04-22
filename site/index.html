@@ -7,8 +7,8 @@
     <!-- Primary Meta Tags -->
     <title>VoiceScribe - Let Your Voice Do The Work | macOS Voice Transcription</title>
     <meta name="title" content="VoiceScribe - Let Your Voice Do The Work | macOS Voice Transcription">
-    <meta name="description" content="A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.">
-    <meta name="keywords" content="VoiceScribe, voice transcription, macOS, speech to text, AI transcription, dictation, voice recording, whisper, local transcription">
+    <meta name="description" content="A local-first macOS dictation app. Record with a global hotkey, transcribe with Whisper or Parakeet, and optionally clean the result with a Local LLM.">
+    <meta name="keywords" content="VoiceScribe, voice transcription, macOS, speech to text, dictation, voice recording, whisper, parakeet, local transcription">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Edd Mann">
     <meta name="theme-color" content="#8b5cf6">
@@ -25,7 +25,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://eddmann.com/VoiceScribe/">
     <meta property="og:title" content="VoiceScribe - Let Your Voice Do The Work">
-    <meta property="og:description" content="A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.">
+    <meta property="og:description" content="A local-first macOS dictation app. Record with a global hotkey, transcribe with Whisper or Parakeet, and optionally clean the result with a Local LLM.">
     <meta property="og:image" content="https://eddmann.com/VoiceScribe/preview.png">
     <meta property="og:site_name" content="VoiceScribe">
 
@@ -33,7 +33,7 @@
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://eddmann.com/VoiceScribe/">
     <meta property="twitter:title" content="VoiceScribe - Let Your Voice Do The Work">
-    <meta property="twitter:description" content="A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.">
+    <meta property="twitter:description" content="A local-first macOS dictation app. Record with a global hotkey, transcribe with Whisper or Parakeet, and optionally clean the result with a Local LLM.">
     <meta property="twitter:image" content="https://eddmann.com/VoiceScribe/preview.png">
 
     <!-- Structured Data (JSON-LD) -->
@@ -49,7 +49,7 @@
             "price": "0",
             "priceCurrency": "USD"
         },
-        "description": "A macOS voice transcription app with AI. Record with a global hotkey, transcribe locally or in the cloud, and let AI enhance your words.",
+        "description": "A local-first macOS dictation app. Record with a global hotkey, transcribe with Whisper or Parakeet, and optionally clean the result with a Local LLM.",
         "downloadUrl": "https://github.com/eddmann/VoiceScribe/releases/latest",
         "softwareVersion": "1.0.0",
         "author": {
@@ -405,8 +405,8 @@
 
             <!-- Tagline -->
             <p class="animate-fade-in-up stagger-3 font-body text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Transform speech into text instantly with local AI processing.
-                Private, fast, and beautifully designed for macOS.
+                Record anywhere, transcribe with Whisper or Parakeet, and optionally clean the result with a Local LLM.
+                Local-only, private, and built for macOS.
             </p>
 
             <!-- CTA Buttons -->
@@ -488,7 +488,7 @@
                     </div>
                     <h3 class="font-display text-2xl mb-3 dark:text-white">Dual Transcription</h3>
                     <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Choose WhisperKit for blazing-fast local processing or OpenAI's cloud transcription for maximum accuracy. Switch anytime.
+                        Choose between Whisper and Parakeet, each with local downloadable models tuned for different speed, language, and quality tradeoffs.
                     </p>
                 </div>
 
@@ -499,9 +499,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3 dark:text-white">AI Enhancement</h3>
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Local Cleanup</h3>
                     <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Optionally polish your transcriptions with AI. Perfect punctuation, capitalization, and formatting—automatically.
+                        Optionally run a Local LLM pass for punctuation, formatting, and light dictation cleanup without sending text off your Mac.
                     </p>
                 </div>
 
@@ -527,7 +527,7 @@
                     </div>
                     <h3 class="font-display text-2xl mb-3 dark:text-white">Privacy First</h3>
                     <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
-                        With WhisperKit, everything stays on your Mac. Your voice never leaves your device. 100% local, 100% private.
+                        Whisper, Parakeet, and Local LLM cleanup all run on-device after download. No cloud path, no API keys, no account setup.
                     </p>
                 </div>
 
@@ -538,9 +538,9 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h3 class="font-display text-2xl mb-3 dark:text-white">Transcription History</h3>
+                    <h3 class="font-display text-2xl mb-3 dark:text-white">Durable History</h3>
                     <p class="font-body text-gray-600 dark:text-gray-400 leading-relaxed">
-                        Every transcription is saved for easy access. Copy previous text, review your recordings, never lose a word.
+                        Keep the original transcript and optional processed version together, then switch between them later before copying.
                     </p>
                 </div>
             </div>

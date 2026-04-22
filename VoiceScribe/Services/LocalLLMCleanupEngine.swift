@@ -5,60 +5,69 @@ import MLXRandom
 import MLXLLM
 import MLXLMCommon
 
-/// Local MLX-based LLM service for post-processing transcriptions
-actor MLXService {
+/// Local LLM cleanup engine backed by MLX models.
+actor LocalLLMCleanupEngine: CleanupEngine {
     nonisolated private static let logger = Logger(
         subsystem: "com.eddmann.VoiceScribe",
-        category: "MLXService"
+        category: "LocalLLMCleanupEngine"
     )
-    static let shared = MLXService()
+    @MainActor static let shared = LocalLLMCleanupEngine()
+    nonisolated let name = "Local LLM"
 
-    /// Available MLX models for post-processing
+    /// Available MLX models for transcript cleanup
     enum Model: String, CaseIterable {
-        case qwen25_0_5b = "mlx-community/Qwen2.5-0.5B-Instruct-4bit"
+        case qwen3_1_7b = "Qwen/Qwen3-1.7B-MLX-4bit"
         case llama3_2_3b = "mlx-community/Llama-3.2-3B-Instruct-4bit"
-        case phi3_5_mini = "mlx-community/Phi-3.5-mini-instruct-4bit"
+        case qwen3_4b = "Qwen/Qwen3-4B-MLX-4bit"
 
         var displayName: String {
             switch self {
-            case .qwen25_0_5b:
-                return "Qwen 2.5 0.5B (Fast)"
+            case .qwen3_1_7b:
+                return "Fast — Qwen3 1.7B"
             case .llama3_2_3b:
-                return "Llama 3.2 3B (Balanced)"
-            case .phi3_5_mini:
-                return "Phi-3.5 Mini (Quality)"
+                return "Balanced — Llama 3.2 3B"
+            case .qwen3_4b:
+                return "Best — Qwen3 4B"
             }
         }
 
         var description: String {
             switch self {
-            case .qwen25_0_5b:
-                return "Smallest model • ~300MB • Very fast, surprisingly capable"
+            case .qwen3_1_7b:
+                return "Newest small MLX option for fast punctuation, formatting, and light cleanup."
             case .llama3_2_3b:
-                return "Medium model • ~1.8GB • Excellent balance of speed and quality"
-            case .phi3_5_mini:
-                return "Largest model • ~2.4GB • Best accuracy, perfect benchmark scores"
+                return "Balanced MLX cleanup model with strong instruction-following and stable output."
+            case .qwen3_4b:
+                return "Largest MLX option here for the best local cleanup quality."
             }
         }
 
         var approximateSize: String {
             switch self {
-            case .qwen25_0_5b:
-                return "~300 MB"
+            case .qwen3_1_7b:
+                return "~1.2 GB"
             case .llama3_2_3b:
                 return "~1.8 GB"
-            case .phi3_5_mini:
-                return "~2.4 GB"
+            case .qwen3_4b:
+                return "~2.6 GB"
             }
+        }
+
+        var technicalModelName: String {
+            rawValue
+        }
+
+        var huggingFaceURL: URL {
+            URL(string: "https://huggingface.co/\(rawValue)")!
         }
     }
 
     nonisolated private var currentModel: Model {
-        if let savedModel = UserDefaults.standard.string(forKey: SettingsKeys.mlxModel),
+        if let savedModel = UserDefaults.standard.string(forKey: SettingsKeys.localLLMModel),
            let model = Model(rawValue: savedModel) {
             return model
         }
-        return .qwen25_0_5b // Default to smallest/fastest
+        return .qwen3_1_7b
     }
 
     /// Get the currently selected model
@@ -66,7 +75,13 @@ actor MLXService {
         return currentModel
     }
 
+    func currentModelName() -> String {
+        currentModel.displayName
+    }
+
     private var progressHandler: (@Sendable (String) -> Void)?
+    private var cachedModel: ModelContainer?
+    private var cachedModelIdentifier: String?
 
     private init() {}
 
@@ -119,18 +134,25 @@ actor MLXService {
         return false
     }
 
+    func isReady() -> Bool {
+        let selectedModel = currentModel
+        return isAvailable && isModelDownloaded(selectedModel)
+    }
+
     /// Download a model from HuggingFace
     func downloadModel(_ model: Model, progressCallback: ((String) -> Void)? = nil) async throws {
         Self.logger.info("Downloading MLX model: \(model.displayName)")
-        progressCallback?("Preparing to download \(model.displayName)...")
+        progressCallback?("Preparing \(model.displayName) Local LLM model...")
 
         do {
             // MLXLLM's loadModel() automatically downloads if not present
-            progressCallback?("Downloading \(model.displayName) (\(model.approximateSize))...")
+            progressCallback?("Downloading \(model.displayName) model (\(model.approximateSize))...")
 
-            _ = try await loadModel(id: model.rawValue)
+            let loadedModel = try await loadModelContainer(id: model.rawValue)
+            cachedModel = loadedModel
+            cachedModelIdentifier = model.rawValue
 
-            progressCallback?("Download complete!")
+            progressCallback?("Model downloaded! Loading \(model.displayName)...")
             Self.logger.info("Model downloaded successfully: \(model.displayName)")
 
         } catch {
@@ -157,11 +179,11 @@ actor MLXService {
     /// Get list of downloaded models
     static func getDownloadedModels() -> [Model] {
         return Model.allCases.filter { model in
-            MLXService.shared.isModelDownloaded(model)
+            LocalLLMCleanupEngine.shared.isModelDownloaded(model)
         }
     }
 
-    // MARK: - Post-Processing
+    // MARK: - Cleanup
 
     /// Post-process text using local MLX LLM
     /// - Returns: AI-enhanced text
@@ -179,22 +201,17 @@ actor MLXService {
             throw VoiceScribeError.modelNotFound(modelName: selectedModel.displayName)
         }
 
-        Self.logger.info("Starting MLX post-processing with model: \(selectedModel.displayName)")
-        progressHandler?("Loading LLM model...")
-
-        // Load the model
-        Self.logger.info("Loading MLX model: \(selectedModel.rawValue)")
-        progressHandler?("Loading \(selectedModel.displayName)...")
-
-        let model = try await loadModel(id: selectedModel.rawValue)
+        Self.logger.info("Starting transcript cleanup with model: \(selectedModel.displayName)")
+        progressHandler?("Loading \(selectedModel.displayName) model...")
+        let model = try await loadCachedModel(for: selectedModel)
 
         Self.logger.info("Model loaded successfully")
-        progressHandler?("Enhancing transcription...")
+        progressHandler?("Cleaning transcript with Local LLM...")
 
         // Create a chat session
         let session = ChatSession(model)
 
-        // Create the prompt for post-processing
+        // Create the prompt for transcript cleanup
         let prompt = """
         Improve this transcription by adding proper punctuation, capitalization, and fixing obvious errors. \
         Return ONLY the cleaned text without any explanations or commentary:
@@ -210,16 +227,35 @@ actor MLXService {
 
         guard !trimmed.isEmpty else {
             Self.logger.error("MLX returned empty result")
-            throw VoiceScribeError.postProcessingFailed(reason: "Model returned empty result")
+            throw VoiceScribeError.cleanupFailed(reason: "Model returned empty result")
         }
 
-        Self.logger.info("MLX post-processing successful, generated \(trimmed.count) characters")
+        Self.logger.info("Transcript cleanup successful, generated \(trimmed.count) characters")
         return trimmed
     }
 
     /// Reload model preference from UserDefaults
     func reloadModelFromPreferences() {
         let model = currentModel
+        if cachedModelIdentifier != model.rawValue {
+            cachedModel = nil
+            cachedModelIdentifier = nil
+        }
         Self.logger.info("Reloaded MLX model from preferences: \(model.displayName)")
+    }
+
+    private func loadCachedModel(for model: Model) async throws -> ModelContainer {
+        if let cachedModel, cachedModelIdentifier == model.rawValue {
+            Self.logger.info("Reusing cached MLX model: \(model.displayName)")
+            return cachedModel
+        }
+
+        Self.logger.info("Loading MLX model: \(model.rawValue)")
+        progressHandler?("Loading \(model.displayName)...")
+
+        let loadedModel = try await loadModelContainer(id: model.rawValue)
+        cachedModel = loadedModel
+        cachedModelIdentifier = model.rawValue
+        return loadedModel
     }
 }

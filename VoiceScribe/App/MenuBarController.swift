@@ -1,6 +1,8 @@
 import AppKit
+import Observation
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
 /// Custom NSWindow subclass that allows borderless windows to become key
 class KeyableWindow: NSWindow {
@@ -19,14 +21,21 @@ final class MenuBarController: NSObject {
     private var statusItem: NSStatusItem?
     private var recordingWindow: NSWindow?
     private var historyWindow: NSWindow?
-    private let appState: AppState
+    private let store: StoreOf<PipelineFeature>
+    private let settingsStore: StoreOf<SettingsFeature>
+    private let historyStore: StoreOf<HistoryFeature>
     private let modelContainer: ModelContainer?
     private var eventMonitor: Any?
     private var standardMenu: NSMenu?
     private var extendedMenu: NSMenu?
 
-    init(appState: AppState, modelContainer: ModelContainer? = nil) {
-        self.appState = appState
+    init(
+        store: StoreOf<AppFeature>,
+        modelContainer: ModelContainer? = nil
+    ) {
+        self.store = store.scope(state: \.pipeline, action: { .pipeline($0) })
+        self.settingsStore = store.scope(state: \.settings, action: { .settings($0) })
+        self.historyStore = store.scope(state: \.history, action: { .history($0) })
         self.modelContainer = modelContainer
         super.init()
         setupMenuBar()
@@ -123,6 +132,12 @@ final class MenuBarController: NSObject {
     @objc private func statusItemClicked() {
         guard let event = NSApp.currentEvent else { return }
 
+        if event.type == .rightMouseUp {
+            extendedMenu = createContextMenu()
+        } else {
+            standardMenu = createStandardMenu()
+        }
+
         // Choose menu based on click type
         let menuToShow = (event.type == .rightMouseUp) ? extendedMenu : standardMenu
 
@@ -138,9 +153,7 @@ final class MenuBarController: NSObject {
 
     @objc func showRecordingWindow() {
         if let window = recordingWindow, window.isVisible {
-            Task { @MainActor in
-                await appState.cancelActiveWork()
-            }
+            store.send(.cancelTapped)
             window.orderOut(nil)
             return
         }
@@ -149,27 +162,25 @@ final class MenuBarController: NSObject {
     }
 
     func handleGlobalRecordingShortcut() {
-        guard SettingsStore.shared.autoStartRecordingFromShortcut else {
+        guard snapshot({ settingsStore.autoStartRecordingFromShortcut }) else {
             showRecordingWindow()
             return
         }
 
-        switch appState.recordingState {
+        switch snapshot({ store.phase }) {
         case .idle, .completed, .error:
             presentRecordingWindow()
-        case .recording, .processing:
+        case .recording, .transcribing, .cleaning:
             break
         }
 
-        Task { @MainActor in
-            switch appState.recordingState {
-            case .idle, .completed, .error:
-                await appState.startRecording()
-            case .recording:
-                await appState.stopRecording()
-            case .processing:
-                await appState.cancelActiveWork()
-            }
+        switch snapshot({ store.phase }) {
+        case .idle, .completed, .error:
+            store.send(.startRecordingTapped)
+        case .recording:
+            store.send(.stopRecordingTapped)
+        case .transcribing, .cleaning:
+            store.send(.cancelTapped)
         }
     }
 
@@ -187,7 +198,7 @@ final class MenuBarController: NSObject {
 
         // Create or show recording window
         if recordingWindow == nil {
-            recordingWindow = createRecordingWindow()
+            recordingWindow = createRecordingWindow(store: store)
         }
 
         guard let window = recordingWindow else { return }
@@ -225,13 +236,11 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func closeRecordingWindow() {
-        Task { @MainActor in
-            await appState.cancelActiveWork()
-        }
+        store.send(.cancelTapped)
         recordingWindow?.orderOut(nil)
     }
 
-    private func createRecordingWindow() -> NSWindow {
+    private func createRecordingWindow(store: StoreOf<PipelineFeature>) -> NSWindow {
         // Window is larger than content to accommodate shadow (radius: 10, y-offset: 4)
         let shadowPadding: CGFloat = 24
         let windowWidth: CGFloat = 360 + shadowPadding * 2
@@ -254,8 +263,7 @@ final class MenuBarController: NSObject {
         window.isMovableByWindowBackground = true
 
         // Set content view with new floating bar - centered in larger window for shadow space
-        let contentView = FloatingRecordBar()
-            .environment(appState)
+        let contentView = FloatingRecordBar(store: store)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
         window.contentView = NSHostingView(rootView: contentView)
@@ -282,10 +290,8 @@ final class MenuBarController: NSObject {
 
             // ESC key closes window and cancels recording
             if event.keyCode == 53 { // ESC
-                Task { @MainActor in
-                    await self?.appState.cancelActiveWork()
-                    window.orderOut(nil)
-                }
+                self?.store.send(.cancelTapped)
+                window.orderOut(nil)
                 return nil // Consume the ESC event
             }
 
@@ -334,10 +340,12 @@ final class MenuBarController: NSObject {
 
         // Create history view - use shared model container to prevent observation errors
         if let container = modelContainer {
-            window.contentView = NSHostingView(rootView: HistoryView().modelContainer(container))
+            window.contentView = NSHostingView(rootView: HistoryView(store: historyStore).modelContainer(container))
         } else {
             // Fallback: create new container (shouldn't happen in normal operation)
-            window.contentView = NSHostingView(rootView: HistoryView().modelContainer(for: TranscriptionRecord.self))
+            window.contentView = NSHostingView(
+                rootView: HistoryView(store: historyStore).modelContainer(for: TranscriptionRecord.self)
+            )
         }
         window.center()
 
@@ -352,24 +360,38 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func quit() {
-        appState.cleanup()
+        store.send(.cancelTapped)
         NSApplication.shared.terminate(nil)
     }
 
     func hideRecordingWindow() {
-        Task { @MainActor in
-            await appState.cancelActiveWork()
-        }
+        store.send(.cancelTapped)
         recordingWindow?.orderOut(nil)
+    }
+
+    private func snapshot<T>(_ read: () -> T) -> T {
+        withObservationTracking(read) {}
     }
 
     #if DEBUG
     /// Shows recording window for demo mode without capturing previous app.
     /// Used for App Store screenshots.
-    func showRecordingWindowForDemo() {
+    func showRecordingWindowForDemo(mode: DemoMode) {
+        let demoStore = Store(initialState: DemoDataFactory.makePipelineState(for: mode)) {
+            PipelineFeature(
+                recordingClient: .testValue,
+                pipelineSettingsClient: .testValue,
+                transcriptionClient: .testValue,
+                cleanupClient: .testValue,
+                completionClient: .testValue,
+                autoResetDelay: nil,
+                audioMeteringInterval: nil
+            )
+        }
+
         // Create recording window if needed (skip previous app capture)
         if recordingWindow == nil {
-            recordingWindow = createRecordingWindow()
+            recordingWindow = createRecordingWindow(store: demoStore)
         }
 
         guard let window = recordingWindow else { return }
@@ -396,7 +418,7 @@ extension MenuBarController: NSWindowDelegate {
                 self.historyWindow = nil
             }
             if window === self.recordingWindow {
-                await self.appState.cancelActiveWork()
+                self.store.send(.cancelTapped)
                 self.recordingWindow = nil
             }
         }

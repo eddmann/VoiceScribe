@@ -2,66 +2,81 @@ import Foundation
 @preconcurrency import WhisperKit
 import os.log
 
-/// Local WhisperKit transcription service (CoreML-based)
-actor WhisperKitService: TranscriptionService {
+/// Local Whisper transcription engine backed by WhisperKit and CoreML.
+actor WhisperEngine: TranscriptionEngine {
     nonisolated private static let logger = Logger(
         subsystem: "com.eddmann.VoiceScribe",
-        category: "WhisperKitService"
+        category: "WhisperEngine"
     )
-    let name = "Local WhisperKit"
-    let identifier = "whisperkit"
-    let requiresAPIKey = false
-
+    let name = "Whisper"
+    let identifier = "whisper"
     private var whisperKit: WhisperKit?
     private var currentModel: Model
 
     private var progressHandler: (@Sendable (String) -> Void)?
 
-    /// Check if post-processing is enabled
-    private var isPostProcessingEnabled: Bool {
-        UserDefaults.standard.bool(forKey: SettingsKeys.whisperKitPostProcessEnabled)
-    }
-
-    /// Available WhisperKit models (from smallest to largest)
+    /// Available WhisperKit models tuned for Apple Silicon Macs.
     enum Model: String, CaseIterable {
-        case base = "openai_whisper-base"
         case small = "openai_whisper-small"
-        case medium = "openai_whisper-medium"
+        case distilLargeV3 = "distil-whisper_distil-large-v3_594MB"
+        case largeV3 = "openai_whisper-large-v3-v20240930_626MB"
 
         var displayName: String {
             switch self {
-            case .base: return "Base (Fast)"
-            case .small: return "Small (Balanced)"
-            case .medium: return "Medium (Quality)"
+            case .small:
+                return "Fast — Small"
+            case .distilLargeV3:
+                return "Balanced — Distil Large v3"
+            case .largeV3:
+                return "Best — Large v3"
+            }
+        }
+
+        var technicalModelName: String {
+            rawValue
+        }
+
+        var description: String {
+            switch self {
+            case .small:
+                return "Smallest Whisper option with the lightest local footprint."
+            case .distilLargeV3:
+                return "Distilled WhisperKit model that balances speed and accuracy well on Apple Silicon."
+            case .largeV3:
+                return "Highest quality WhisperKit model in this lineup for broader multilingual dictation."
             }
         }
 
         var approximateSize: String {
             switch self {
-            case .base: return "~150 MB"
-            case .small: return "~500 MB"
-            case .medium: return "~1.5 GB"
+            case .small: return "~466 MB"
+            case .distilLargeV3: return "~594 MB"
+            case .largeV3: return "~626 MB"
             }
         }
 
         var estimatedBytes: Int64 {
             switch self {
-            case .base: return 142 * 1024 * 1024
             case .small: return 466 * 1024 * 1024
-            case .medium: return 1536 * 1024 * 1024
+            case .distilLargeV3: return 594 * 1024 * 1024
+            case .largeV3: return 626 * 1024 * 1024
             }
+        }
+
+        var huggingFaceURL: URL {
+            URL(string: "https://huggingface.co/argmaxinc/whisperkit-coreml/tree/main/\(rawValue)")!
         }
     }
 
     init() {
-        // Load saved model preference or default to base
-        if let savedModel = UserDefaults.standard.string(forKey: SettingsKeys.whisperKitModel),
+        // Load saved model preference or default to small
+        if let savedModel = UserDefaults.standard.string(forKey: SettingsKeys.whisperModel),
            let model = Model.allCases.first(where: { $0.rawValue == savedModel }) {
             self.currentModel = model
         } else {
-            self.currentModel = .base
+            self.currentModel = .small
             // Save the default
-            UserDefaults.standard.set(Model.base.rawValue, forKey: SettingsKeys.whisperKitModel)
+            UserDefaults.standard.set(Model.small.rawValue, forKey: SettingsKeys.whisperModel)
         }
     }
 
@@ -113,7 +128,7 @@ actor WhisperKitService: TranscriptionService {
         setenv("HF_HUB_DISABLE_IMPLICIT_TOKEN", "1", 1)
     }
 
-    // MARK: - TranscriptionService Protocol
+    // MARK: - TranscriptionEngine Protocol
 
     var isAvailable: Bool {
         get async {
@@ -139,7 +154,7 @@ actor WhisperKitService: TranscriptionService {
         }
     }
 
-    func transcribe(audioURL: URL) async throws -> String {
+    func transcribe(audioURL: URL) async throws -> TranscriptionResult {
         // Check if model is downloaded, if not download it automatically
         if !isModelDownloadedLocally(currentModel) {
             Self.logger.info("Model not found locally, downloading: \(self.currentModel.displayName)")
@@ -161,7 +176,7 @@ actor WhisperKitService: TranscriptionService {
         }
 
         guard let whisper = whisperKit else {
-            throw VoiceScribeError.serviceNotAvailable(service: name)
+            throw VoiceScribeError.engineNotAvailable(engine: name)
         }
 
         Self.logger.info("Starting local transcription with model: \(self.currentModel.displayName)")
@@ -173,34 +188,28 @@ actor WhisperKitService: TranscriptionService {
 
             // Combine all segments into single text
             let text = results.map { $0.text }.joined(separator: " ")
-
-            guard !text.isEmpty else {
-                throw VoiceScribeError.noAudioRecorded
-            }
-
             Self.logger.info("Local transcription successful: \(text.count) chars")
-            var transcribedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
-
-            // Apply post-processing if enabled
-            if isPostProcessingEnabled {
-                Self.logger.info("Post-processing enabled for WhisperKit")
-                progressHandler?("Enhancing with AI post-processing...")
-                do {
-                    transcribedText = try await postProcess(text: transcribedText)
-                    Self.logger.info("Post-processing successful")
-                } catch {
-                    // Log error but don't fail the transcription
-                    Self.logger.error("Post-processing failed: \(error.localizedDescription)")
-                    // Continue with original transcription
-                }
+            let transcribedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            let segments = results.map { segment in
+                TranscriptionResult.Segment(text: segment.text)
             }
 
-            return transcribedText
+            guard !transcribedText.isEmpty else {
+                return .ignored(.noSpeechDetected, segments: segments)
+            }
 
+            guard !transcribedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return .ignored(.emptyTranscription, segments: segments)
+            }
+
+            return .success(transcribedText, segments: segments)
+
+        } catch let error as VoiceScribeError {
+            throw error
         } catch {
             Self.logger.error("WhisperKit transcription error: \(error.localizedDescription)")
             throw VoiceScribeError.transcriptionFailed(
-                service: name,
+                engine: name,
                 reason: error.localizedDescription
             )
         }
@@ -245,7 +254,7 @@ actor WhisperKitService: TranscriptionService {
             }
 
             throw VoiceScribeError.transcriptionFailed(
-                service: name,
+                engine: name,
                 reason: error.localizedDescription
             )
         }
@@ -262,7 +271,7 @@ actor WhisperKitService: TranscriptionService {
 
     /// Reload the model from user preferences
     func reloadModelFromPreferences() async {
-        if let savedModel = UserDefaults.standard.string(forKey: SettingsKeys.whisperKitModel),
+        if let savedModel = UserDefaults.standard.string(forKey: SettingsKeys.whisperModel),
            let model = Model.allCases.first(where: { $0.rawValue == savedModel }),
            model != currentModel {
             Self.logger.info("Reloading model from preferences: \(model.displayName)")
@@ -270,6 +279,10 @@ actor WhisperKitService: TranscriptionService {
             // Clear whisperKit to force re-initialization with new model
             whisperKit = nil
         }
+    }
+
+    func currentModelName() async -> String {
+        currentModel.displayName
     }
 
     /// Download a model if not already available
@@ -343,43 +356,6 @@ actor WhisperKitService: TranscriptionService {
         if FileManager.default.fileExists(atPath: modelPath.path) {
             try FileManager.default.removeItem(at: modelPath)
             Self.logger.info("Deleted model: \(model.displayName)")
-        }
-    }
-
-    // MARK: - Post-Processing
-
-    /// Post-process transcribed text using MLX local AI model
-    /// - Returns: AI-enhanced text if successful, original text if MLX unavailable or fails
-    /// - Note: No fallback to basic cleanup - it's real AI enhancement or nothing
-    private func postProcess(text: String) async throws -> String {
-        let mlxService = MLXService.shared
-
-        // Check if MLX is available (Apple Silicon only)
-        guard mlxService.isAvailable else {
-            Self.logger.warning("MLX not available (requires Apple Silicon M1/M2/M3/M4)")
-            throw VoiceScribeError.postProcessingFailed(
-                reason: "MLX requires Apple Silicon. Post-processing disabled."
-            )
-        }
-
-        // Check if model is downloaded
-        let currentMLXModel = mlxService.getCurrentModel()
-        guard mlxService.isModelDownloaded(currentMLXModel) else {
-            Self.logger.warning("MLX model not downloaded: \(currentMLXModel.displayName)")
-            throw VoiceScribeError.modelNotFound(modelName: currentMLXModel.displayName)
-        }
-
-        // Attempt MLX post-processing
-        Self.logger.info("Starting MLX local AI post-processing with \(currentMLXModel.displayName)")
-        do {
-            let enhanced = try await mlxService.postProcess(text: text)
-            Self.logger.info("MLX post-processing successful")
-            return enhanced
-        } catch {
-            Self.logger.error("MLX post-processing failed: \(error.localizedDescription)")
-            throw VoiceScribeError.postProcessingFailed(
-                reason: "AI enhancement failed: \(error.localizedDescription)"
-            )
         }
     }
 }

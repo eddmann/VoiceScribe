@@ -1,25 +1,47 @@
 import SwiftUI
 import SwiftData
+import ComposableArchitecture
 
-/// History view showing past transcriptions
 struct HistoryView: View {
-    @Environment(\.modelContext) private var modelContext
     @Query(sort: \TranscriptionRecord.timestamp, order: .reverse) private var allRecords: [TranscriptionRecord]
+    let store: StoreOf<HistoryFeature>
 
-    @State private var copiedRecordID: UUID?
-    @AppStorage(SettingsKeys.historyLimit) private var historyLimit: Int = 25
-
-    private var limitedRecords: [TranscriptionRecord] {
-        Array(allRecords.prefix(historyLimit))
+    init(store: StoreOf<HistoryFeature>) {
+        self.store = store
     }
 
     var body: some View {
+        let limitedRecords = Array(allRecords.prefix(store.historyLimit))
+
         VStack(spacing: 0) {
-            // Header
+            header(limitedRecords: limitedRecords)
+
+            Divider()
+
+            if limitedRecords.isEmpty {
+                emptyStateView
+            } else {
+                transcriptionList(limitedRecords: limitedRecords)
+            }
+        }
+        .frame(width: 760, height: 560)
+        .onAppear {
+            store.send(.appeared)
+        }
+    }
+
+    private func header(limitedRecords: [TranscriptionRecord]) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Transcription History")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("History")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+
+                    Text("Each entry keeps the original transcript and, when enabled, the cleaned version.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
 
                 Spacer()
 
@@ -27,18 +49,8 @@ struct HistoryView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            .padding()
-
-            Divider()
-
-            // Content
-            if limitedRecords.isEmpty {
-                emptyStateView
-            } else {
-                transcriptionList
-            }
         }
-        .frame(width: 700, height: 500)
+        .padding(20)
     }
 
     private var emptyStateView: some View {
@@ -47,147 +59,156 @@ struct HistoryView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.secondary)
 
-            Text("No Transcriptions Yet")
+            Text("No Transcripts Yet")
                 .font(.title3)
                 .fontWeight(.medium)
 
-            Text("Your transcription history will appear here")
+            Text("Recorded transcripts will appear here once you start using VoiceScribe.")
                 .font(.body)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var transcriptionList: some View {
+    private func transcriptionList(limitedRecords: [TranscriptionRecord]) -> some View {
         ScrollView {
-            LazyVStack(spacing: 0) {
+            LazyVStack(spacing: 12) {
                 ForEach(limitedRecords) { record in
                     TranscriptionRow(
                         record: record,
-                        isCopied: copiedRecordID == record.id,
-                        onCopy: {
-                            copyToClipboard(record)
+                        isCopied: store.copiedRecordID == record.id,
+                        onCopy: { text in
+                            store.send(.copyTapped(record.id, text))
                         }
                     )
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-
-                    if record.id != limitedRecords.last?.id {
-                        Divider()
-                            .padding(.leading, 16)
-                    }
                 }
             }
-            .padding(.vertical, 8)
-        }
-    }
-
-    private func copyToClipboard(_ record: TranscriptionRecord) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(record.text, forType: .string)
-
-        // Show feedback
-        copiedRecordID = record.id
-
-        // Clear feedback after 2 seconds
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2))
-            if copiedRecordID == record.id {
-                copiedRecordID = nil
-            }
+            .padding(20)
         }
     }
 }
 
-// MARK: - Transcription Row
-
 struct TranscriptionRow: View {
     let record: TranscriptionRecord
     let isCopied: Bool
-    let onCopy: () -> Void
+    let onCopy: (String) -> Void
+    @State private var selectedVariant: TranscriptVariant
+
+    init(record: TranscriptionRecord, isCopied: Bool, onCopy: @escaping (String) -> Void) {
+        self.record = record
+        self.isCopied = isCopied
+        self.onCopy = onCopy
+        _selectedVariant = State(initialValue: record.processed != nil ? .processed : .original)
+    }
+
+    private var availableVariants: [TranscriptVariant] {
+        if record.processed != nil {
+            return [.processed, .original]
+        } else {
+            return [.original]
+        }
+    }
+
+    private var activeArtifact: TranscriptArtifact {
+        switch selectedVariant {
+        case .original:
+            return record.original
+        case .processed:
+            return record.processed ?? record.original
+        }
+    }
+
+    private var copyLabel: String {
+        switch selectedVariant {
+        case .original:
+            return "Copy Original"
+        case .processed:
+            return "Copy Processed"
+        }
+    }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Service Badge
-            VStack(spacing: 4) {
-                serviceBadge
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(serviceColor.opacity(0.15))
-                    .foregroundStyle(serviceColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
+        VStack(alignment: .leading, spacing: 14) {
+            header
 
-                // Duration
-                Text(formatDuration(record.audioDuration))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-
-            // Content
-            VStack(alignment: .leading, spacing: 6) {
-                Text(record.text)
-                    .font(.body)
-                    .lineLimit(3)
-                    .multilineTextAlignment(.leading)
-
-                HStack(spacing: 8) {
-                    Image(systemName: "clock")
-                        .font(.caption2)
-                    Text(record.timestamp.relativeTimeString())
-                        .font(.caption)
-
-                    Spacer()
-
-                    if isCopied {
-                        Label("Copied!", systemImage: "checkmark.circle.fill")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                            .transition(.scale.combined(with: .opacity))
+            if availableVariants.count > 1 {
+                Picker("Transcript Version", selection: $selectedVariant) {
+                    ForEach(availableVariants, id: \.self) { variant in
+                        Text(variant.title).tag(variant)
                     }
                 }
-                .foregroundStyle(.secondary)
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+
+            transcriptBlock(
+                title: selectedVariant.title,
+                artifact: activeArtifact,
+                text: activeArtifact.text,
+                accent: selectedVariant.accent
+            )
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.quaternary.opacity(0.24))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var header: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(record.timestamp.relativeTimeString())
+                    .font(.subheadline.weight(.medium))
+
+                Text("\(formatDuration(record.audioDuration)) recording")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            // Copy Button
-            Button(action: onCopy) {
-                Image(systemName: "doc.on.doc")
-                    .font(.body)
+            if isCopied {
+                Label("Copied", systemImage: "checkmark.circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            }
+
+            Button(action: {
+                onCopy(activeArtifact.text)
+            }) {
+                Label(copyLabel, systemImage: "doc.on.doc")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+    }
+
+    private func transcriptBlock(
+        title: String,
+        artifact: TranscriptArtifact,
+        text: String,
+        accent: Color
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(accent)
+
+                Text("\(artifact.engine) • \(artifact.model)")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .help("Copy to clipboard")
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            onCopy()
-        }
-    }
 
-    private var serviceBadge: some View {
-        switch record.serviceUsed.lowercased() {
-        case "whisperkit":
-            return Text("WhisperKit")
-        case "openai":
-            return Text("OpenAI")
-        default:
-            return Text(record.serviceUsed)
+            Text(text)
+                .font(.body)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private var serviceColor: Color {
-        switch record.serviceUsed.lowercased() {
-        case "whisperkit":
-            return .blue
-        case "openai":
-            return .green
-        default:
-            return .gray
-        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(accent.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     private func formatDuration(_ duration: TimeInterval) -> String {
@@ -202,7 +223,34 @@ struct TranscriptionRow: View {
     }
 }
 
+private enum TranscriptVariant: String, Hashable {
+    case original
+    case processed
+
+    var title: String {
+        switch self {
+        case .original:
+            return "Original"
+        case .processed:
+            return "Processed"
+        }
+    }
+
+    var accent: Color {
+        switch self {
+        case .original:
+            return .blue
+        case .processed:
+            return .green
+        }
+    }
+}
+
 #Preview {
-    HistoryView()
+    HistoryView(
+        store: Store(initialState: HistoryFeature.State()) {
+            HistoryFeature()
+        }
+    )
         .modelContainer(for: TranscriptionRecord.self, inMemory: true)
 }
