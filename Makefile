@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-XCODEBUILD := xcodebuild -project VoiceScribe.xcodeproj -scheme VoiceScribe
+XCODEBUILD := xcodebuild -skipMacroValidation -project VoiceScribe.xcodeproj -scheme VoiceScribe
 DEV_BUILD_DIR := build/dev
 RELEASE_BUILD_DIR := build/release
 DIST_DIR := dist
