@@ -81,6 +81,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcodebuild clean build \
+            -skipMacroValidation \
             -project VoiceScribe.xcodeproj \
             -scheme VoiceScribe \
             -configuration Release \
