@@ -138,7 +138,8 @@ actor ParakeetEngine: TranscriptionEngine {
         progressHandler?("Running Parakeet locally...")
 
         do {
-            let result = try await manager.transcribe(audioURL, source: .microphone)
+            var decoderState = TdtDecoderState.make(decoderLayers: await manager.decoderLayerCount)
+            let result = try await manager.transcribe(audioURL, decoderState: &decoderState)
             return normalizeResult(result, model: selectedModel)
         } catch let error as ASRError {
             if case .invalidAudioData = error {

@@ -848,30 +848,30 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		6AFA00022F80000000000001 /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/FluidInference/FluidAudio.git";
-			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.13.6;
+			6AFA00022F80000000000001 /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
+				isa = XCRemoteSwiftPackageReference;
+				repositoryURL = "https://github.com/FluidInference/FluidAudio.git";
+				requirement = {
+					kind = upToNextMinorVersion;
+					minimumVersion = 0.14.0;
+				};
 			};
-		};
-		68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
-			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 2.25.7;
+			68534FB42EBCD52300E3CC30 /* XCRemoteSwiftPackageReference "mlx-swift-examples" */ = {
+				isa = XCRemoteSwiftPackageReference;
+				repositoryURL = "https://github.com/ml-explore/mlx-swift-examples";
+				requirement = {
+					kind = upToNextMinorVersion;
+					minimumVersion = 2.25.7;
+				};
 			};
-		};
-		688FC48B2EA563180010F082 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
-			requirement = {
-				kind = upToNextMinorVersion;
-				minimumVersion = 0.14.1;
+			688FC48B2EA563180010F082 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+				isa = XCRemoteSwiftPackageReference;
+				repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
+				requirement = {
+					kind = upToNextMinorVersion;
+					minimumVersion = 0.14.1;
+				};
 			};
-		};
 		688FC48E2EA563240010F082 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts.git";
