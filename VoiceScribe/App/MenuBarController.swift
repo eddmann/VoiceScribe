@@ -310,8 +310,11 @@ final class MenuBarController: NSObject {
     }
 
     @objc func showSettings() {
-        // Use native SwiftUI Settings scene via notification to HiddenWindowView
-        NotificationCenter.default.post(name: .openVoiceScribeSettings, object: nil)
+        // Post after the status menu finishes closing so SwiftUI can present Settings reliably.
+        NSApp.activate(ignoringOtherApps: true)
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .openVoiceScribeSettings, object: nil)
+        }
     }
 
     @objc func showHistory() {
